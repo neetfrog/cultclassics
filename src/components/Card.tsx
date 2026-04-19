@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Item } from "../data";
 import { getArtworkPath } from "../utils/image";
+import { subredditMap } from "../subreddits";
 
 interface CardProps {
   item: Item;
@@ -20,6 +21,8 @@ export default function Card({
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const imageSrc = getArtworkPath(item);
+  const subreddit = subredditMap[item.id];
+  const subredditUrl = subreddit ? `https://www.reddit.com/r/${subreddit}` : undefined;
 
   if (viewMode === "grid") {
     return (
@@ -89,6 +92,19 @@ export default function Card({
         <p className="px-4 pb-3 text-gray-400 text-xs leading-relaxed line-clamp-2">
           {item.description}
         </p>
+
+        {subredditUrl && (
+          <div className="px-4 pb-3">
+            <a
+              href={subredditUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+            >
+              r/{subreddit} ↗
+            </a>
+          </div>
+        )}
 
         {/* Expand toggle */}
         <button
@@ -169,6 +185,18 @@ export default function Card({
           </div>
           <p className="text-xs text-gray-500 mt-0.5">{item.genre}</p>
           <p className="text-gray-400 text-sm mt-2 line-clamp-2">{item.description}</p>
+          {subredditUrl && (
+            <div className="mt-2">
+              <a
+                href={subredditUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+              >
+                r/{subreddit} ↗
+              </a>
+            </div>
+          )}
           <div className="mt-3">
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-300">
               {expanded ? "Show less" : "Show more"}
