@@ -539,6 +539,7 @@ export default function App() {
                     accentHex={hex}
                     isFavorite={isFavorite(item.id)}
                     onToggleFavorite={toggle}
+                    onTagClick={(tag) => setSearch(tag)}
                     viewMode="grid"
                   />
                 ))}
@@ -552,6 +553,7 @@ export default function App() {
                     accentHex={hex}
                     isFavorite={isFavorite(item.id)}
                     onToggleFavorite={toggle}
+                    onTagClick={(tag) => setSearch(tag)}
                     viewMode="list"
                   />
                 ))}

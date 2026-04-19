@@ -9,6 +9,7 @@ interface CardProps {
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   viewMode: "list" | "grid";
+  onTagClick?: (tag: string) => void;
 }
 
 export default function Card({
@@ -17,6 +18,7 @@ export default function Card({
   isFavorite,
   onToggleFavorite,
   viewMode,
+  onTagClick,
 }: CardProps) {
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -95,7 +97,11 @@ export default function Card({
           {item.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="text-xs px-2 py-0.5 rounded-full bg-gray-700/60 text-gray-400"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTagClick?.(tag);
+              }}
+              className={`text-xs px-2 py-0.5 rounded-full bg-gray-700/60 text-gray-400 ${onTagClick ? "cursor-pointer hover:bg-gray-600/70 hover:text-white" : ""}`}
             >
               {tag}
             </span>
@@ -229,7 +235,11 @@ export default function Card({
             {item.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="text-xs px-1.5 py-0.5 rounded-full bg-gray-700/60 text-gray-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTagClick?.(tag);
+                }}
+                className={`text-xs px-1.5 py-0.5 rounded-full bg-gray-700/60 text-gray-500 ${onTagClick ? "cursor-pointer hover:bg-gray-600/70 hover:text-white" : ""}`}
               >
                 {tag}
               </span>
