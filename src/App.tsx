@@ -1,0 +1,628 @@
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { data, categories, Category, Item } from "./data";
+import Card from "./components/Card";
+import StatsView from "./components/StatsView";
+import FavoritesView from "./components/FavoritesView";
+import { useFavorites } from "./hooks/useFavorites";
+
+type SortKey = "default" | "year-asc" | "year-desc" | "rating" | "a-z";
+type View = "browse" | "favorites" | "stats";
+
+const accentHex: Record<Category, string> = {
+  movies: "#ef4444",
+  tv: "#a855f7",
+  books: "#f59e0b",
+  games: "#22c55e",
+  music: "#3b82f6",
+};
+
+function RandomModal({
+  item,
+  catHex,
+  catIcon,
+  catLabel,
+  isFavorite,
+  onToggle,
+  onClose,
+  onNext,
+}: {
+  item: Item;
+  catHex: string;
+  catIcon: string;
+  catLabel: string;
+  isFavorite: boolean;
+  onToggle: (id: string) => void;
+  onClose: () => void;
+  onNext: () => void;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-3xl overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        style={{ boxShadow: `0 0 60px ${catHex}33` }}
+      >
+        {/* Header strip */}
+        <div
+          className="h-1.5 w-full"
+          style={{ background: `linear-gradient(to right, ${catHex}, ${catHex}88)` }}
+        />
+
+        <div className="p-6 space-y-4">
+          {/* Category pill */}
+          <div className="flex items-center justify-between">
+            <span
+              className="text-xs font-semibold px-3 py-1 rounded-full"
+              style={{ background: catHex + "33", color: catHex }}
+            >
+              {catIcon} {catLabel}
+            </span>
+            <span className="text-xs text-gray-500">{item.year}</span>
+          </div>
+
+          {/* Emoji + Title */}
+          <div className="flex items-center gap-4">
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+              style={{ background: catHex + "22" }}
+            >
+              {item.emoji}
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-white leading-tight">{item.title}</h2>
+              <p className="text-xs text-gray-400 mt-1">{item.genre}</p>
+              <div className="flex gap-0.5 mt-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <span key={s} className={`text-sm ${s <= item.rating ? "text-yellow-400" : "text-gray-700"}`}>★</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-gray-300 text-sm leading-relaxed">{item.description}</p>
+
+          {/* Why cult */}
+          <div
+            className="rounded-xl p-3 border-l-4 text-sm"
+            style={{ borderColor: catHex, background: catHex + "11" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: catHex }}>
+              Why it's a cult classic
+            </p>
+            <p className="text-gray-200 text-sm leading-relaxed">{item.whyCult}</p>
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1.5">
+            {item.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{ background: catHex + "22", color: catHex + "cc" }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => onToggle(item.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                isFavorite
+                  ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                  : "bg-gray-700/60 text-gray-300 border border-gray-600/40 hover:bg-gray-700"
+              }`}
+            >
+              {isFavorite ? "❤️ Saved" : "🤍 Save"}
+            </button>
+            <button
+              onClick={onNext}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold bg-white/10 text-white border border-white/10 hover:bg-white/15 transition-all"
+            >
+              🎲 Another random
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [activeCategory, setActiveCategory] = useState<Category>("movies");
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("default");
+  const [minRating, setMinRating] = useState(0);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [view, setView] = useState<View>("browse");
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [randomItem, setRandomItem] = useState<{
+    item: Item;
+    catId: Category;
+  } | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const { favorites, toggle, isFavorite, count: favCount } = useFavorites();
+
+  const activeCat = categories.find((c) => c.id === activeCategory)!;
+
+  const baseItems = useMemo(() => data[activeCategory], [activeCategory]);
+
+  const filtered = useMemo(() => {
+    let items = [...baseItems];
+    const q = search.toLowerCase().trim();
+    if (q) {
+      items = items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(q) ||
+          item.genre.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q) ||
+          item.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    if (minRating > 0) {
+      items = items.filter((item) => item.rating >= minRating);
+    }
+    switch (sortKey) {
+      case "year-asc":
+        items.sort((a, b) => a.year - b.year);
+        break;
+      case "year-desc":
+        items.sort((a, b) => b.year - a.year);
+        break;
+      case "rating":
+        items.sort((a, b) => b.rating - a.rating || a.title.localeCompare(b.title));
+        break;
+      case "a-z":
+        items.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+    }
+    return items;
+  }, [baseItems, search, sortKey, minRating]);
+
+  const globalResults = useMemo(() => {
+    if (!globalSearch.trim()) return [];
+    const q = globalSearch.toLowerCase().trim();
+    return categories.flatMap((cat) =>
+      data[cat.id]
+        .filter(
+          (item) =>
+            item.title.toLowerCase().includes(q) ||
+            item.genre.toLowerCase().includes(q) ||
+            item.tags.some((t) => t.toLowerCase().includes(q))
+        )
+        .map((item) => ({ item, cat }))
+    );
+  }, [globalSearch]);
+
+  const pickRandom = useCallback(() => {
+    const allItems = categories.flatMap((cat) =>
+      data[cat.id].map((item) => ({ item, catId: cat.id as Category }))
+    );
+    const pick = allItems[Math.floor(Math.random() * allItems.length)];
+    setRandomItem(pick);
+  }, []);
+
+  const handleTabChange = (id: Category) => {
+    setActiveCategory(id);
+    setSearch("");
+    setSortKey("default");
+    setMinRating(0);
+    setShowFilters(false);
+  };
+
+  const activeFilters = (search ? 1 : 0) + (minRating > 0 ? 1 : 0) + (sortKey !== "default" ? 1 : 0);
+
+  const hex = accentHex[activeCategory];
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+      {/* ── HEADER ── */}
+      <header className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-md border-b border-gray-800/80">
+        <div className="max-w-2xl mx-auto px-4 pt-4 pb-0">
+          {/* Top row */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-lg shadow-lg shadow-violet-900/40 flex-shrink-0">
+              🔥
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-base font-extrabold tracking-tight text-white leading-none">
+                Cult Classics
+              </h1>
+              <p className="text-xs text-gray-500 mt-0.5 leading-none">
+                Must-see picks across every medium
+              </p>
+            </div>
+            <button
+              onClick={pickRandom}
+              title="Random pick"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 border border-gray-700 text-xs font-semibold text-gray-300 hover:bg-gray-700 hover:text-white transition-all active:scale-95"
+            >
+              🎲 <span className="hidden sm:inline">Random</span>
+            </button>
+          </div>
+
+          {/* Global search bar (only visible when not in browse mode) */}
+          {view !== "browse" && (
+            <div className="relative mb-3">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
+              <input
+                ref={searchRef}
+                type="search"
+                placeholder="Search all categories…"
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="w-full bg-gray-800/80 border border-gray-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition"
+              />
+            </div>
+          )}
+
+          {/* Category tabs */}
+          {view === "browse" && (
+            <div className="flex gap-0.5 overflow-x-auto no-scrollbar">
+              {categories.map((cat) => {
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleTabChange(cat.id)}
+                    className={`relative flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                      isActive ? "text-white" : "text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span className="hidden sm:inline">{cat.label}</span>
+                    {isActive && (
+                      <span
+                        className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                        style={{ background: cat.hex }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* ── MAIN ── */}
+      <main className="flex-1 max-w-2xl mx-auto w-full px-4 pt-4 pb-24">
+        {/* ── BROWSE VIEW ── */}
+        {view === "browse" && (
+          <>
+            {/* Hero row */}
+            <div
+              className="rounded-2xl p-4 mb-4 flex items-center gap-4"
+              style={{
+                background: `linear-gradient(135deg, ${hex}18 0%, transparent 100%)`,
+                border: `1px solid ${hex}22`,
+              }}
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+                style={{ background: hex + "25" }}
+              >
+                {activeCat.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-extrabold tracking-tight text-white">
+                  {activeCat.label}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {baseItems.length} essential picks
+                  {filtered.length !== baseItems.length &&
+                    ` · ${filtered.length} shown`}
+                </p>
+              </div>
+              {/* View toggle */}
+              <div className="flex bg-gray-800/60 border border-gray-700/60 rounded-xl p-1 gap-1">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-1.5 rounded-lg text-sm transition-all ${
+                    viewMode === "list"
+                      ? "bg-gray-600 text-white"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                  title="List view"
+                >
+                  ☰
+                </button>
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-1.5 rounded-lg text-sm transition-all ${
+                    viewMode === "grid"
+                      ? "bg-gray-600 text-white"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                  title="Grid view"
+                >
+                  ⊞
+                </button>
+              </div>
+            </div>
+
+            {/* Search + Filter row */}
+            <div className="flex gap-2 mb-3">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                  🔍
+                </span>
+                <input
+                  type="search"
+                  placeholder={`Search ${activeCat.label.toLowerCase()}…`}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-gray-800/80 border border-gray-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition"
+                />
+                {search && (
+                  <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-xs"
+                    onClick={() => setSearch("")}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowFilters((p) => !p)}
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                  showFilters || activeFilters > 0
+                    ? "bg-gray-700 border-gray-500 text-white"
+                    : "bg-gray-800/80 border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-600"
+                }`}
+              >
+                ⚙️
+                {activeFilters > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-xs font-bold flex items-center justify-center text-white"
+                    style={{ background: hex }}
+                  >
+                    {activeFilters}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Filter panel */}
+            {showFilters && (
+              <div className="bg-gray-800/80 border border-gray-700/60 rounded-2xl p-4 mb-3 space-y-4 animate-in">
+                {/* Sort */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Sort by
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        { key: "default", label: "Default" },
+                        { key: "a-z", label: "A → Z" },
+                        { key: "year-asc", label: "Oldest first" },
+                        { key: "year-desc", label: "Newest first" },
+                        { key: "rating", label: "Top rated" },
+                      ] as { key: SortKey; label: string }[]
+                    ).map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => setSortKey(key)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                          sortKey === key
+                            ? "text-white border-transparent"
+                            : "bg-gray-700/40 border-gray-600/40 text-gray-400 hover:text-gray-200"
+                        }`}
+                        style={
+                          sortKey === key
+                            ? { background: hex + "55", borderColor: hex + "88" }
+                            : {}
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Min rating */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Minimum rating
+                  </p>
+                  <div className="flex gap-2">
+                    {[0, 3, 4, 5].map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => setMinRating(r)}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                          minRating === r
+                            ? "text-white border-transparent"
+                            : "bg-gray-700/40 border-gray-600/40 text-gray-400 hover:text-gray-200"
+                        }`}
+                        style={
+                          minRating === r
+                            ? { background: hex + "55", borderColor: hex + "88" }
+                            : {}
+                        }
+                      >
+                        {r === 0 ? "Any" : `${"★".repeat(r)}+`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Reset */}
+                {activeFilters > 0 && (
+                  <button
+                    onClick={() => {
+                      setSortKey("default");
+                      setMinRating(0);
+                      setSearch("");
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-300 underline transition-colors"
+                  >
+                    Reset all filters
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Results info */}
+            {(search || minRating > 0) && (
+              <p className="text-xs text-gray-500 mb-3">
+                {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+                {search && ` for "${search}"`}
+                {minRating > 0 && ` · ${minRating}★+`}
+              </p>
+            )}
+
+            {/* Cards */}
+            {filtered.length === 0 ? (
+              <div className="text-center py-20 text-gray-500">
+                <p className="text-5xl mb-4">🤷</p>
+                <p className="text-sm font-medium text-gray-400">No results found</p>
+                <p className="text-xs mt-1 text-gray-600">Try a different search or filter</p>
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setMinRating(0);
+                    setSortKey("default");
+                  }}
+                  className="mt-4 text-xs text-gray-500 underline hover:text-gray-300"
+                >
+                  Clear filters
+                </button>
+              </div>
+            ) : viewMode === "grid" ? (
+              <div className="grid grid-cols-2 gap-3">
+                {filtered.map((item) => (
+                  <Card
+                    key={item.id}
+                    item={item}
+                    accentHex={hex}
+                    isFavorite={isFavorite(item.id)}
+                    onToggleFavorite={toggle}
+                    viewMode="grid"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {filtered.map((item) => (
+                  <Card
+                    key={item.id}
+                    item={item}
+                    accentHex={hex}
+                    isFavorite={isFavorite(item.id)}
+                    onToggleFavorite={toggle}
+                    viewMode="list"
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── FAVORITES VIEW ── */}
+        {view === "favorites" && (
+          <FavoritesView
+            favorites={favorites}
+            onToggleFavorite={toggle}
+          />
+        )}
+
+        {/* ── STATS VIEW ── */}
+        {view === "stats" && <StatsView favorites={favorites} />}
+
+        {/* ── GLOBAL SEARCH RESULTS overlay ── */}
+        {view !== "browse" && globalSearch && (
+          <div className="mt-4 space-y-2">
+            <p className="text-xs text-gray-500 mb-3">
+              {globalResults.length} result{globalResults.length !== 1 ? "s" : ""} for "{globalSearch}"
+            </p>
+            {globalResults.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-4xl mb-3">🔍</p>
+                <p className="text-sm text-gray-400">Nothing found</p>
+              </div>
+            ) : (
+              globalResults.map(({ item, cat }) => (
+                <Card
+                  key={item.id}
+                  item={item}
+                  accentHex={cat.hex}
+                  isFavorite={isFavorite(item.id)}
+                  onToggleFavorite={toggle}
+                  viewMode="list"
+                />
+              ))
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* ── BOTTOM NAV ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-gray-950/95 backdrop-blur-md border-t border-gray-800/80">
+        <div className="max-w-2xl mx-auto flex">
+          {(
+            [
+              { id: "browse" as View, icon: "🏠", label: "Browse" },
+              { id: "favorites" as View, icon: "❤️", label: "Saved", badge: favCount },
+              { id: "stats" as View, icon: "📊", label: "Stats" },
+            ] as { id: View; icon: string; label: string; badge?: number }[]
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setView(tab.id);
+                setGlobalSearch("");
+              }}
+              className={`relative flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-all ${
+                view === tab.id ? "text-white" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <span className="text-xl leading-none">{tab.icon}</span>
+              <span className="text-xs font-medium">{tab.label}</span>
+              {tab.badge != null && tab.badge > 0 && (
+                <span className="absolute top-1.5 left-1/2 translate-x-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center leading-none">
+                  {tab.badge > 9 ? "9+" : tab.badge}
+                </span>
+              )}
+              {view === tab.id && (
+                <span className="absolute top-0 left-1/4 right-1/4 h-0.5 rounded-full bg-gradient-to-r from-violet-500 to-pink-500" />
+              )}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* ── RANDOM MODAL ── */}
+      {randomItem && (() => {
+        const cat = categories.find((c) => c.id === randomItem.catId)!;
+        return (
+          <RandomModal
+            item={randomItem.item}
+            catHex={cat.hex}
+            catIcon={cat.icon}
+            catLabel={cat.label}
+            isFavorite={isFavorite(randomItem.item.id)}
+            onToggle={toggle}
+            onClose={() => setRandomItem(null)}
+            onNext={pickRandom}
+          />
+        );
+      })()}
+    </div>
+  );
+}
