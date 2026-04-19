@@ -196,4 +196,82 @@ export const movies: Item[] = [
       "A 30-year passion project shot mostly practically. Feminist action filmmaking at its absolute peak. Witness it.",
     rating: 5,
   },
+  {
+    id: "m16",
+    title: "Pan's Labyrinth",
+    year: 2006,
+    genre: "Fantasy / War",
+    tags: ["guillermo del toro", "fantasy", "dark", "Franco Spain"],
+    emoji: "🦋",
+    description:
+      "A girl escapes the horrors of post-Civil War Spain by entering a terrifying fairy world full of impossible tasks.",
+    whyCult:
+      "A dark fairy tale for adults with unforgettable creatures, gore, and impossible beauty.",
+    rating: 5,
+  },
+  {
+    id: "m17",
+    title: "Shaun of the Dead",
+    year: 2004,
+    genre: "Horror / Comedy",
+    tags: ["zombie", "british comedy", "edgar wright", "satire"],
+    emoji: "🧟",
+    description:
+      "A slacker tries to save his friends and win back his girlfriend while a zombie apocalypse breaks out in London.",
+    whyCult:
+      "The movie that proved horror comedy could be smart, heartfelt, and ridiculously quotable.",
+    rating: 5,
+  },
+  {
+    id: "m18",
+    title: "Brazil",
+    year: 1985,
+    genre: "Sci-Fi / Satire",
+    tags: ["terry gilliam", "dystopia", "bureaucracy", "surreal"],
+    emoji: "📠",
+    description:
+      "A low-level bureaucrat rebels against an absurd, oppressive system in a dreamlike future full of paperwork.",
+    whyCult:
+      "Surreal, funny, and terrifying — the antimodern dystopia every tired office worker still quotes.",
+    rating: 5,
+  },
+  {
+    id: "m19",
+    title: "Requiem for a Dream",
+    year: 2000,
+    genre: "Drama / Experimental",
+    tags: ["addiction", "aronofsky", "editing", "tragedy"],
+    emoji: "💊",
+    description:
+      "Four lives spiral into addiction, each chasing a dream that becomes uglier and more devastating.",
+    whyCult:
+      "Visceral editing and unbearable emotion make this one of the most intense, talked-about films of the 2000s.",
+    rating: 5,
+  },
+  {
+    id: "m20",
+    title: "The Warriors",
+    year: 1979,
+    genre: "Action / Cult Classic",
+    tags: ["gangs", "new york", "midnight movie", "80s"],
+    emoji: "👊",
+    description:
+      "A street gang fights through hostile New York neighborhoods to make it back to their home turf after a false accusation.",
+    whyCult:
+      "Iconic midnight screenings and unforgettable lines turned it into one of the most enduring cult action films.",
+    rating: 5,
+  },
+  {
+    id: "m21",
+    title: "Eternal Sunshine of the Spotless Mind",
+    year: 2004,
+    genre: "Sci-Fi / Romance",
+    tags: ["memory", "romance", "mind-bending", "charlie kaufman"],
+    emoji: "🧠",
+    description:
+      "A couple has their memories of one another erased and then rediscover why they fell in love.",
+    whyCult:
+      "A modern romantic masterpiece that is endlessly rewatched by anyone who believes love is worth the pain.",
+    rating: 5,
+  },
 ];

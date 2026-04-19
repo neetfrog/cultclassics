@@ -1,8 +1,9 @@
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const dataPath = path.join(process.cwd(), 'src', 'data.ts');
-const fileText = await readFile(dataPath, 'utf8');
+const dataDir = path.join(process.cwd(), 'src', 'data');
+const files = await readdir(dataDir);
+const dataFiles = files.filter((file) => file.endsWith('.ts'));
 const itemRegex = /\{[^{}]*?id:\s*"([^\"]+)"[^{}]*?title:\s*"([^\"]+)"/gs;
 const items = [];
 let match;
@@ -16,8 +17,12 @@ const slugifyTitle = (title) =>
     .replace(/^-+|-+$/g, '')
     .replace(/-+/g, '-');
 
-while ((match = itemRegex.exec(fileText))) {
-  items.push({ id: match[1], title: match[2] });
+for (const file of dataFiles) {
+  const fileText = await readFile(path.join(dataDir, file), 'utf8');
+  itemRegex.lastIndex = 0;
+  while ((match = itemRegex.exec(fileText))) {
+    items.push({ id: match[1], title: match[2] });
+  }
 }
 
 function getCategoryFromId(id) {

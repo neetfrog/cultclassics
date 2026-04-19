@@ -196,4 +196,69 @@ export const tv: Item[] = [
       "Noah Hawley dismantled superhero TV conventions and made something closer to a psychedelic art film. Divisive and brilliant.",
     rating: 4,
   },
+  {
+    id: "t16",
+    title: "The X-Files",
+    year: 1993,
+    genre: "Sci-Fi / Mystery",
+    tags: ["conspiracy", "paranormal", "90s", "fbi"],
+    emoji: "🛸",
+    description:
+      "Two FBI agents investigate the strange, the unexplained, and the terrifying, searching for the truth.",
+    whyCult:
+      "Defined 90s conspiracy culture and created a fanbase that still chants 'The truth is out there.'",    
+    rating: 5,
+  },
+  {
+    id: "t17",
+    title: "Community",
+    year: 2009,
+    genre: "Meta Comedy",
+    tags: ["meta", "genre parody", "campus life", "obsessive fans"],
+    emoji: "🎓",
+    description:
+      "A study group at Greendale Community College gets into absurd adventures and increasingly meta sitcom madness.",
+    whyCult:
+      "Its obsessed fanbase worships every callback and joke; it's the show people watch while taking notes.",
+    rating: 5,
+  },
+  {
+    id: "t18",
+    title: "Doctor Who",
+    year: 1963,
+    genre: "Sci-Fi / Adventure",
+    tags: ["time travel", "british", "classic", "iconic"],
+    emoji: "🕰️",
+    description:
+      "A time-traveling alien known as the Doctor explores the universe in a ship that looks like a police box.",
+    whyCult:
+      "The longest-running sci-fi show on earth, with an unmatched fan culture built on imagination and regeneration.",
+    rating: 5,
+  },
+  {
+    id: "t19",
+    title: "The Twilight Zone",
+    year: 1959,
+    genre: "Anthology / Sci-Fi",
+    tags: ["anthology", "twist ending", "moral", "classic"],
+    emoji: "🌒",
+    description:
+      "Ordinary people face extraordinary moral and cosmic dilemmas in a strange dimension where anything can happen.",
+    whyCult:
+      "The original mind-bending anthology that still influences every supernatural and speculative series.",
+    rating: 5,
+  },
+  {
+    id: "t20",
+    title: "The OA",
+    year: 2016,
+    genre: "Mystery / Sci-Fi",
+    tags: ["mystery", "multiverse", "ritual", "cult"],
+    emoji: "🌌",
+    description:
+      "A missing woman returns with sight restored and a secret mission to save others through alternate dimensions.",
+    whyCult:
+      "Polarizing, mysterious, and endlessly theorized, it became a streaming show that fans still dissect obsessively.",
+    rating: 5,
+  },
 ];

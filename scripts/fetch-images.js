@@ -1,11 +1,11 @@
-﻿import { readFile, writeFile, mkdir, access } from "node:fs/promises";
+﻿import { readFile, writeFile, mkdir, access, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 const imagesDir = path.join(projectRoot, "public", "images");
-const dataPath = path.join(projectRoot, "src", "data.ts");
+const dataDir = path.join(projectRoot, "src", "data");
 
 const wikipediaSummaryUrl = (title) =>
   `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
@@ -67,6 +67,18 @@ function getImageFileName(title, id) {
 function getImageFilePath(fileName, id) {
   const category = getCategoryFromId(id);
   return path.join(imagesDir, category, fileName);
+}
+
+const imageExtensions = [".jpg", ".png"];
+
+async function anyArtworkExists(title, id) {
+  const fileBase = getImageFileName(title, id).replace(/\.jpg$/, "");
+  for (const ext of imageExtensions) {
+    if (await exists(getImageFilePath(`${fileBase}${ext}`, id))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function exists(pathname) {
@@ -237,10 +249,9 @@ async function writeImage(fileName, id, buffer) {
 
 async function downloadImage(id, title) {
   const fileName = getImageFileName(title, id);
-  const targetFile = getImageFilePath(fileName, id);
   const force = process.argv.includes("--force");
-  if (!force && (await exists(targetFile))) {
-    console.log(`Skipping ${id} (exists at ${fileName})`);
+  if (!force && (await anyArtworkExists(title, id))) {
+    console.log(`Skipping ${id} (image already exists)`);
     return;
   }
 
@@ -266,18 +277,29 @@ async function downloadImage(id, title) {
   }
 }
 
-async function main() {
-  await mkdir(imagesDir, { recursive: true });
-  const fileText = await readFile(dataPath, "utf8");
+async function collectItems() {
+  const files = await readdir(dataDir);
+  const dataFiles = files.filter((file) => file.endsWith(".ts"));
   const itemRegex = /\{[^{}]*?id:\s*"([^"]+)"[^{}]*?title:\s*"([^"]+)"/gs;
   const items = [];
-  let match;
-  while ((match = itemRegex.exec(fileText))) {
-    items.push({ id: match[1], title: match[2] });
+
+  for (const file of dataFiles) {
+    const fileText = await readFile(path.join(dataDir, file), "utf8");
+    let match;
+    while ((match = itemRegex.exec(fileText))) {
+      items.push({ id: match[1], title: match[2] });
+    }
   }
 
+  return items;
+}
+
+async function main() {
+  await mkdir(imagesDir, { recursive: true });
+  const items = await collectItems();
+
   if (!items.length) {
-    throw new Error("No items found in data.ts");
+    throw new Error("No items found in category data files");
   }
 
   for (const item of items) {

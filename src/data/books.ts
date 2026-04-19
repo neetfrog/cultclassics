@@ -196,4 +196,82 @@ export const books: Item[] = [
       "Ishiguro's most devastating novel works as sci-fi, love story, and meditation on what it means to be human all at once.",
     rating: 5,
   },
+  {
+    id: "b16",
+    title: "Snow Crash",
+    year: 1992,
+    genre: "Cyberpunk / Satire",
+    tags: ["neal stephenson", "metaverse", "hacker", "linguistics"],
+    emoji: "🪓",
+    description:
+      "A hacker/courier delivers pizza and fights a mind-altering virus in a fractured, fast-food-soaked future America.",
+    whyCult:
+      "Coined the term metaverse and predicted internet culture with blistering satire and action.",
+    rating: 5,
+  },
+  {
+    id: "b17",
+    title: "The Secret History",
+    year: 1992,
+    genre: "Literary Thriller",
+    tags: ["academia", "murder", "classics", "gothic"],
+    emoji: "🗝️",
+    description:
+      "A freshman is drawn into a secretive Classics clique whose intellectual games spiral into murder and madness.",
+    whyCult:
+      "The original campus murder cult novel, obsessively reread by people who love beautiful, dangerous prose.",
+    rating: 5,
+  },
+  {
+    id: "b18",
+    title: "Kindred",
+    year: 1979,
+    genre: "Afrofuturism / Historical",
+    tags: ["octavia butler", "time travel", "slavery", "race"],
+    emoji: "🌀",
+    description:
+      "A Black writer keeps being dragged from 1970s California to antebellum Maryland to save her white ancestor.",
+    whyCult:
+      "A foundational Afrofuturist work that blends horror, history, and speculative urgency in one haunting story.",
+    rating: 5,
+  },
+  {
+    id: "b19",
+    title: "The Stand",
+    year: 1978,
+    genre: "Post-Apocalyptic / Fantasy",
+    tags: ["stephen king", "plague", "good vs evil", "epic"],
+    emoji: "🧟",
+    description:
+      "After a pandemic wipes out most of humanity, survivors are drawn toward a final battle between light and darkness.",
+    whyCult:
+      "One of King's biggest, most beloved epics — a pandemic novel with a devoted horror fanbase.",
+    rating: 5,
+  },
+  {
+    id: "b20",
+    title: "American Psycho",
+    year: 1991,
+    genre: "Satire / Horror",
+    tags: ["bret easton ellis", "1990s", "consumerism", "violent"],
+    emoji: "💳",
+    description:
+      "A Wall Street yuppie hides his murderous cravings beneath immaculate suits, routines, and perfect meals.",
+    whyCult:
+      "Infamous and polarizing, it's a cult shock novel that still sparks debate about capitalism, identity, and violence.",
+    rating: 4,
+  },
+  {
+    id: "b21",
+    title: "The Neverending Story",
+    year: 1979,
+    genre: "Fantasy / Meta Fiction",
+    tags: ["fantasy", "childhood", "imagination", "quest"],
+    emoji: "🐉",
+    description:
+      "A boy discovers a magical book that pulls him into the fate of the kingdom of Fantasia as he rides a luckdragon.",
+    whyCult:
+      "A favorite of imaginative readers, a recursive fairy tale that became a touchstone for adventurous hearts.",
+    rating: 4,
+  },
 ];

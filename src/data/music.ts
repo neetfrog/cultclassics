@@ -196,4 +196,69 @@ export const music: Item[] = [
       "Called the greatest album ever made by countless artists. Every singer-songwriter since has been chasing it.",
     rating: 5,
   },
+  {
+    id: "mu16",
+    title: "Kid A — Radiohead",
+    year: 2000,
+    genre: "Experimental Rock",
+    tags: ["radiohead", "electronic", "alienation", "art rock"],
+    emoji: "🧊",
+    description:
+      "Radiohead abandoned guitar-rock for textured, unsettling soundscapes that felt like a haunted future.",
+    whyCult:
+      "A critical game-changer that split fans and cemented Radiohead as the most adventurous band of their era.",
+    rating: 5,
+  },
+  {
+    id: "mu17",
+    title: "The Queen Is Dead — The Smiths",
+    year: 1986,
+    genre: "Indie Rock",
+    tags: ["morrissey", "the smiths", "british", "bittersweet"],
+    emoji: "👑",
+    description:
+      "Johnny Marr's chiming guitars support Morrissey's cruelly brilliant love songs and social commentary.",
+    whyCult:
+      "The definitive album of British indie melancholy, still quoted by every loner with a ten-year-old haircut.",
+    rating: 5,
+  },
+  {
+    id: "mu18",
+    title: "Mezzanine — Massive Attack",
+    year: 1998,
+    genre: "Trip-Hop",
+    tags: ["trip-hop", "dub", "electronic", "dark"],
+    emoji: "🌑",
+    description:
+      "A shadowy blend of bass, breakbeats, and erotic tension that defined the late-90s underground.",
+    whyCult:
+      "Still the late-night, rain-soaked album that every mysterious playlist borrows from.",
+    rating: 5,
+  },
+  {
+    id: "mu19",
+    title: "Aquemini — OutKast",
+    year: 1998,
+    genre: "Hip-Hop / Southern Rap",
+    tags: ["outkast", "southern", "concept album", "funk"],
+    emoji: "🌙",
+    description:
+      "André 3000 and Big Boi craft a flawless, sprawling portrait of Southern life, ambition, and cosmic identity.",
+    whyCult:
+      "The South's most ambitious rap statement, still way ahead of its time and endlessly influential.",
+    rating: 5,
+  },
+  {
+    id: "mu20",
+    title: "Pinkerton — Weezer",
+    year: 1996,
+    genre: "Alternative Rock",
+    tags: ["weezer", "emo", "90s", "confessional"],
+    emoji: "💔",
+    description:
+      "Weezer's second album turned heartbreak, ambition, and weirdness into a bruised cult classic.",
+    whyCult:
+      "Hated at release, adored later — the album every angsty indie kid swears changed their life.",
+    rating: 5,
+  },
 ];

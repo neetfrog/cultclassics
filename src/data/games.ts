@@ -196,4 +196,95 @@ export const games: Item[] = [
       "Deliberately punishing and relentlessly philosophical. Called one of the most important games ever made by those who finish it.",
     rating: 5,
   },
+  {
+    id: "g16",
+    title: "Hades",
+    year: 2020,
+    genre: "Roguelike / Action",
+    tags: ["supergiant", "roguelike", "mythology", "story"],
+    emoji: "⚡",
+    description:
+      "The prince of the underworld fights his way through ever-changing rooms while unraveling his family's endless drama.",
+    whyCult:
+      "A near-perfect modern roguelike with sharp writing, unforgettable characters, and impossible replay value.",
+    rating: 5,
+  },
+  {
+    id: "g17",
+    title: "Papers, Please",
+    year: 2013,
+    genre: "Puzzle / Simulation",
+    tags: ["dystopia", "bureaucracy", "indie", "morality"],
+    emoji: "🛂",
+    description:
+      "A border inspector makes life-or-death paperwork decisions in a cold, paranoid totalitarian state.",
+    whyCult:
+      "Torturous, human, and deeply clever — the game that made paperwork feel like the center of cinema-grade drama.",
+    rating: 5,
+  },
+  {
+    id: "g18",
+    title: "Hotline Miami",
+    year: 2012,
+    genre: "Action / Neo-Noir",
+    tags: ["neon", "violence", "soundtrack", "surreal"],
+    emoji: "🐀",
+    description:
+      "A masked killer receives cryptic calls and massacres his way through neon-soaked, surreal levels of violence.",
+    whyCult:
+      "Its brutal gameplay, addictive synth soundtrack, and mystery made it an instant cult phenomenon.",
+    rating: 5,
+  },
+  {
+    id: "g19",
+    title: "Celeste",
+    year: 2018,
+    genre: "Platformer / Indie",
+    tags: ["mental health", "precision", "story", "climbing"],
+    emoji: "🧗",
+    description:
+      "A young woman climbs a mountain while fighting inner demons and learning to accept herself.",
+    whyCult:
+      "A perfect mashup of tight platforming and emotional storytelling that resonated with millions.",
+    rating: 5,
+  },
+  {
+    id: "g20",
+    title: "Night in the Woods",
+    year: 2017,
+    genre: "Story-Driven Adventure",
+    tags: ["small town", "anthropomorphic", "mystery", "friendship"],
+    emoji: "🌙",
+    description:
+      "A college dropout returns home to find her town changed and a strange darkness spreading beneath the surface.",
+    whyCult:
+      "A melancholic, hilarious, and unsettling story game with impeccable writing and atmosphere.",
+    rating: 5,
+  },
+  {
+    id: "g21",
+    title: "Journey",
+    year: 2012,
+    genre: "Adventure / Art Game",
+    tags: ["online", "emotional", "art game", "anonymous"],
+    emoji: "🧵",
+    description:
+      "A robed traveler crosses a desert toward a distant mountain, meeting silent companions along the way.",
+    whyCult:
+      "A wordless, shared meditation that proved games could be deeply emotional and transcendent.",
+    rating: 5,
+  },
+  {
+    id: "g22",
+    title: "Bastion",
+    year: 2011,
+    genre: "Action RPG / Indie",
+    tags: ["narration", "supergiant", "style", "soundtrack"],
+    emoji: "🔥",
+    description:
+      "A lone survivor collects shards of a shattered world while a narrator comments on every action.",
+    whyCult:
+      "The definitive early indie classic: gorgeous art, perfect narration, and unforgettable music.",
+    rating: 5,
+  },
 ];
