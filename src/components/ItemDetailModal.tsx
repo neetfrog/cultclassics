@@ -63,7 +63,12 @@ export default function ItemDetailModal({
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handler);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [onClose]);
 
   useEffect(() => {
@@ -72,9 +77,21 @@ export default function ItemDetailModal({
     }
   }, [category, item.id]);
 
+  const visibleCollections = useMemo(() => {
+    return collections.filter((collection) => {
+      if (collection.id === "re-read" && category !== "books") {
+        return false;
+      }
+      if (collection.id === "replay" && category !== "games") {
+        return false;
+      }
+      return true;
+    });
+  }, [collections, category]);
+
   const selectedCollections = useMemo(
-    () => collections.filter((collection) => collection.itemIds.includes(item.id)),
-    [collections, item.id]
+    () => visibleCollections.filter((collection) => collection.itemIds.includes(item.id)),
+    [visibleCollections, item.id]
   );
 
   return (
@@ -83,7 +100,7 @@ export default function ItemDetailModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl bg-gray-900 border border-gray-700 rounded-3xl overflow-hidden shadow-2xl"
+        className="w-full max-w-3xl max-h-[calc(100vh-4rem)] bg-gray-900 border border-gray-700 rounded-3xl overflow-hidden shadow-2xl"
         onClick={(event) => event.stopPropagation()}
         style={{ boxShadow: `0 0 60px ${accentHex}33` }}
       >
@@ -91,7 +108,7 @@ export default function ItemDetailModal({
           className="h-1.5 w-full"
           style={{ background: `linear-gradient(to right, ${accentHex}, ${accentHex}88)` }}
         />
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(100vh-5rem)] overscroll-y-contain">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-4">
               <div
@@ -182,7 +199,7 @@ export default function ItemDetailModal({
                   value={note}
                   onChange={(event) => onNoteChange(item.id, event.target.value)}
                   placeholder={`My note about ${item.title}...`}
-                  className="w-full min-h-[140px] rounded-3xl border border-gray-700 bg-gray-950 p-4 text-sm text-white outline-none focus:border-gray-500"
+                  className="w-full min-h-[140px] max-h-[260px] rounded-3xl border border-gray-700 bg-gray-950 p-4 text-sm text-white outline-none focus:border-gray-500 overflow-y-auto resize-y overscroll-y-contain"
                 />
               </div>
             </div>
@@ -228,7 +245,7 @@ export default function ItemDetailModal({
                   <span className="text-xs text-gray-500">{selectedCollections.length} assigned</span>
                 </div>
                 <div className="space-y-2">
-                  {collections.map((collection) => {
+                  {visibleCollections.map((collection) => {
                     const selected = collection.itemIds.includes(item.id);
                     return (
                       <button
