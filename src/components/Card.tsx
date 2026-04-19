@@ -157,8 +157,8 @@ export default function Card({
           {item.description}
         </p>
 
-        {externalLinks.length > 0 && (
-          <div className="px-4 pb-3 flex flex-wrap gap-2">
+        {(externalLinks.length > 0 || subredditUrl) && (
+          <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
             {externalLinks.map((link) => {
               const Icon = iconMap[link.icon];
               return (
@@ -167,27 +167,24 @@ export default function Card({
                   href={link.href}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+                  aria-label={link.label}
+                  className="inline-flex items-center justify-center text-sky-300 hover:text-sky-200 transition-colors"
                 >
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{link.label}</span>
                 </a>
               );
             })}
-          </div>
-        )}
-
-        {subredditUrl && (
-          <div className="px-4 pb-3">
-            <a
-              href={subredditUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
-            >
-              <FaRedditAlien className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>r/{subreddit}</span>
-            </a>
+            {subredditUrl && (
+              <a
+                href={subredditUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={`Visit r/${subreddit}`}
+                className="inline-flex items-center justify-center text-sky-300 hover:text-sky-200 transition-colors"
+              >
+                <FaRedditAlien className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            )}
           </div>
         )}
 
@@ -298,8 +295,8 @@ export default function Card({
           </div>
           <p className="text-xs text-gray-500 mt-0.5">{item.genre}</p>
           <p className="text-gray-400 text-sm mt-2 line-clamp-2">{item.description}</p>
-          {externalLinks.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
+          {(externalLinks.length > 0 || subredditUrl) && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               {externalLinks.map((link) => {
                 const Icon = iconMap[link.icon];
                 return (
@@ -308,26 +305,24 @@ export default function Card({
                     href={link.href}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+                    aria-label={link.label}
+                    className="inline-flex items-center justify-center text-sky-300 hover:text-sky-200 transition-colors"
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>{link.label}</span>
                   </a>
                 );
               })}
-            </div>
-          )}
-          {subredditUrl && (
-            <div className="mt-2">
-              <a
-                href={subredditUrl}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
-              >
-                <FaRedditAlien className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>r/{subreddit}</span>
-              </a>
+              {subredditUrl && (
+                <a
+                  href={subredditUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  aria-label={`Visit r/${subreddit}`}
+                  className="inline-flex items-center justify-center text-sky-300 hover:text-sky-200 transition-colors"
+                >
+                  <FaRedditAlien className="h-3.5 w-3.5" aria-hidden="true" />
+                </a>
+              )}
             </div>
           )}
           <div className="mt-3">
