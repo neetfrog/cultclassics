@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import type { Category, Item } from "../data";
 import type { IconType } from "react-icons";
 import { FaRedditAlien } from "react-icons/fa";
@@ -242,8 +242,8 @@ export default function Card({
           <span className={`text-lg transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>▾</span>
         </button>
 
-        {/* Expanded content */}
-        {expanded && (
+        {/* Expanded content with animated height */}
+        <AnimatedPanel expanded={expanded} accentHex={accentHex}>
           <div className="px-4 pb-4 pt-3 border-t border-gray-700/40">
             <div
               className="rounded-lg p-3 border-l-4"
@@ -255,7 +255,7 @@ export default function Card({
               <p className="text-gray-200 text-xs leading-relaxed">{item.whyCult}</p>
             </div>
           </div>
-        )}
+        </AnimatedPanel>
         {imageModal}
       </div>
     );
@@ -407,8 +407,8 @@ export default function Card({
         </div>
       </div>
 
-      {/* Expanded content */}
-      {expanded && (
+      {/* Animated expanded content for list view */}
+      <AnimatedPanel expanded={expanded} accentHex={accentHex}>
         <div className="px-4 pb-4 border-t border-gray-700/40 pt-3">
           <div
             className="rounded-xl p-3 border-l-4"
@@ -420,9 +420,43 @@ export default function Card({
             <p className="text-gray-200 text-sm leading-relaxed">{item.whyCult}</p>
           </div>
         </div>
-      )}
+      </AnimatedPanel>
 
       {imageModal}
+    </div>
+  );
+}
+
+function AnimatedPanel({ expanded, children }: { expanded: boolean; children: React.ReactNode; accentHex?: string }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [maxH, setMaxH] = useState<string>("0px");
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (expanded) {
+      // measure and expand
+      el.style.display = "block";
+      const height = el.scrollHeight;
+      setMaxH(`${height}px`);
+      // after transition allow auto height
+      const t = setTimeout(() => setMaxH(""), 300);
+      return () => clearTimeout(t);
+    }
+    // collapse
+    const height = el.scrollHeight;
+    // set current height then trigger to 0
+    setMaxH(`${height}px`);
+    requestAnimationFrame(() => setMaxH("0px"));
+  }, [expanded]);
+
+  return (
+    <div
+      ref={ref}
+      style={{ maxHeight: maxH, overflow: "hidden", transition: "max-height 300ms ease" }}
+      aria-hidden={!expanded}
+    >
+      {children}
     </div>
   );
 }
