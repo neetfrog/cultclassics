@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Item } from "../data";
-import { getArtworkPath } from "../utils/image";
+import { getArtworkPath, getArtworkExtensions } from "../utils/image";
 import { subredditMap } from "../subreddits";
 
 interface CardProps {
@@ -20,9 +20,16 @@ export default function Card({
 }: CardProps) {
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const imageSrc = getArtworkPath(item);
+  const [imageAttempt, setImageAttempt] = useState(0);
+  const artworkExtensions = getArtworkExtensions();
+  const imageSrc = getArtworkPath(item, artworkExtensions[imageAttempt]);
   const subreddit = subredditMap[item.id];
   const subredditUrl = subreddit ? `https://www.reddit.com/r/${subreddit}` : undefined;
+
+  useEffect(() => {
+    setImageError(false);
+    setImageAttempt(0);
+  }, [item.id]);
 
   if (viewMode === "grid") {
     return (
@@ -47,7 +54,13 @@ export default function Card({
                   src={imageSrc}
                   alt={item.title}
                   className="w-full h-full object-cover"
-                  onError={() => setImageError(true)}
+                  onError={() => {
+                    if (imageAttempt < artworkExtensions.length - 1) {
+                      setImageAttempt((attempt) => attempt + 1);
+                    } else {
+                      setImageError(true);
+                    }
+                  }}
                 />
               ) : (
                 <span className="text-2xl">{item.emoji}</span>
@@ -155,7 +168,13 @@ export default function Card({
               src={imageSrc}
               alt={item.title}
               className="w-full h-full object-cover"
-              onError={() => setImageError(true)}
+              onError={() => {
+                if (imageAttempt < artworkExtensions.length - 1) {
+                  setImageAttempt((attempt) => attempt + 1);
+                } else {
+                  setImageError(true);
+                }
+              }}
             />
           ) : (
             <span className="text-2xl">{item.emoji}</span>

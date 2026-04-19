@@ -1,5 +1,9 @@
 import type { Item } from "../data";
 
+const artworkExtensions = [".jpg", ".png"] as const;
+
+type ArtworkExtension = (typeof artworkExtensions)[number];
+
 function slugifyTitle(title: string) {
   return title
     .toLowerCase()
@@ -20,8 +24,12 @@ function getCategoryFromId(id: string) {
   return "movies";
 }
 
-export function getArtworkPath(item: Item) {
+export function getArtworkPath(item: Item, ext: ArtworkExtension = ".jpg") {
   const slug = slugifyTitle(item.title);
   const category = getCategoryFromId(item.id);
-  return `/images/${category}/${slug}-${item.id}.jpg`;
+  return `/images/${category}/${slug}-${item.id}${ext}`;
+}
+
+export function getArtworkExtensions() {
+  return artworkExtensions;
 }

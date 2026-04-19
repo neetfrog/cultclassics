@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { data, categories, Category, Item } from "./data";
-import { getArtworkPath } from "./utils/image";
+import { getArtworkPath, getArtworkExtensions } from "./utils/image";
 import Card from "./components/Card";
 import StatsView from "./components/StatsView";
 import FavoritesView from "./components/FavoritesView";
@@ -37,10 +37,13 @@ function RandomModal({
   onNext: () => void;
 }) {
   const [modalImageError, setModalImageError] = useState(false);
-  const modalImageSrc = getArtworkPath(item);
+  const [modalImageAttempt, setModalImageAttempt] = useState(0);
+  const artworkExtensions = getArtworkExtensions();
+  const modalImageSrc = getArtworkPath(item, artworkExtensions[modalImageAttempt]);
 
   useEffect(() => {
     setModalImageError(false);
+    setModalImageAttempt(0);
   }, [item.id]);
 
   useEffect(() => {
@@ -90,7 +93,13 @@ function RandomModal({
                   src={modalImageSrc}
                   alt={item.title}
                   className="w-full h-full object-cover"
-                  onError={() => setModalImageError(true)}
+                  onError={() => {
+                    if (modalImageAttempt < artworkExtensions.length - 1) {
+                      setModalImageAttempt((attempt) => attempt + 1);
+                    } else {
+                      setModalImageError(true);
+                    }
+                  }}
                 />
               ) : (
                 <span className="text-3xl">{item.emoji}</span>
