@@ -51,6 +51,32 @@ export default function Card({
     }
   };
 
+  const imageModal = imageModalOpen ? (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+      onClick={() => setImageModalOpen(false)}
+    >
+      <div
+        className="relative max-w-full max-h-full overflow-hidden rounded-3xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => setImageModalOpen(false)}
+          className="absolute top-4 right-4 z-10 rounded-full bg-black/70 p-2 text-white hover:bg-black/90"
+          aria-label="Close image preview"
+        >
+          ✕
+        </button>
+        <img
+          src={imageSrc}
+          alt={item.title}
+          className="max-w-[90vw] max-h-[90vh] object-contain rounded-3xl"
+        />
+      </div>
+    </div>
+  ) : null;
+
   useEffect(() => {
     setImageError(false);
     setImageAttempt(0);
@@ -153,12 +179,12 @@ export default function Card({
           ))}
         </div>
 
-        <p className="px-4 pb-3 text-gray-400 text-xs leading-relaxed line-clamp-2">
-          {item.description}
-        </p>
+        <div className={`px-4 pb-3 text-gray-400 text-xs leading-relaxed ${expanded ? "" : "max-h-16 overflow-y-auto no-scrollbar"}`}>
+          <p>{item.description}</p>
+        </div>
 
         {(externalLinks.length > 0 || subredditUrl) && (
-          <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
+          <div className="px-4 pb-3 mt-4 pt-3 border-t border-gray-700/40 flex items-center gap-3">
             {externalLinks.map((link) => {
               const Icon = iconMap[link.icon];
               return (
@@ -211,6 +237,7 @@ export default function Card({
             </div>
           </div>
         )}
+        {imageModal}
       </div>
     );
   }
@@ -296,7 +323,7 @@ export default function Card({
           <p className="text-xs text-gray-500 mt-0.5">{item.genre}</p>
           <p className="text-gray-400 text-sm mt-2 line-clamp-2">{item.description}</p>
           {(externalLinks.length > 0 || subredditUrl) && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-4 pt-3 border-t border-gray-700/40 flex items-center gap-3">
               {externalLinks.map((link) => {
                 const Icon = iconMap[link.icon];
                 return (
@@ -366,31 +393,7 @@ export default function Card({
         </div>
       )}
 
-      {imageModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
-          onClick={() => setImageModalOpen(false)}
-        >
-          <div
-            className="relative max-w-full max-h-full overflow-hidden rounded-3xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setImageModalOpen(false)}
-              className="absolute top-4 right-4 z-10 rounded-full bg-black/70 p-2 text-white hover:bg-black/90"
-              aria-label="Close image preview"
-            >
-              ✕
-            </button>
-            <img
-              src={imageSrc}
-              alt={item.title}
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded-3xl"
-            />
-          </div>
-        </div>
-      )}
+      {imageModal}
     </div>
   );
 }
