@@ -51,8 +51,22 @@ function slugifyTitle(title) {
     .replace(/-+/g, "-");
 }
 
+function getCategoryFromId(id) {
+  if (id.startsWith("mu")) return "music";
+  if (id.startsWith("m")) return "movies";
+  if (id.startsWith("t")) return "tv";
+  if (id.startsWith("b")) return "books";
+  if (id.startsWith("g")) return "games";
+  return "movies";
+}
+
 function getImageFileName(title, id) {
   return `${slugifyTitle(title)}-${id}.jpg`;
+}
+
+function getImageFilePath(fileName, id) {
+  const category = getCategoryFromId(id);
+  return path.join(imagesDir, category, fileName);
 }
 
 async function exists(pathname) {
@@ -214,15 +228,16 @@ async function fetchUnsplashImage(query) {
   }
 }
 
-async function writeImage(fileName, buffer) {
-  const filePath = path.join(imagesDir, fileName);
+async function writeImage(fileName, id, buffer) {
+  const filePath = getImageFilePath(fileName, id);
+  await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, buffer);
   console.log(`Wrote ${filePath}`);
 }
 
 async function downloadImage(id, title) {
   const fileName = getImageFileName(title, id);
-  const targetFile = path.join(imagesDir, fileName);
+  const targetFile = getImageFilePath(fileName, id);
   const force = process.argv.includes("--force");
   if (!force && (await exists(targetFile))) {
     console.log(`Skipping ${id} (exists at ${fileName})`);
@@ -235,7 +250,7 @@ async function downloadImage(id, title) {
     console.log(`Trying Wikipedia image for ${id}: ${title}`);
     const imageUrl = await fetchWikipediaImage(title, id);
     const buffer = await fetchBuffer(imageUrl);
-    await writeImage(fileName, buffer);
+    await writeImage(fileName, id, buffer);
     return;
   } catch (error) {
     console.warn(`Wikipedia fallback failed for ${id}: ${error.message}`);
@@ -244,7 +259,7 @@ async function downloadImage(id, title) {
   try {
     console.log(`Trying Unsplash image for ${id}: ${query}`);
     const buffer = await fetchUnsplashImage(query);
-    await writeImage(fileName, buffer);
+    await writeImage(fileName, id, buffer);
   } catch (error) {
     console.error(`Unsplash fallback failed for ${id}: ${error.message}`);
     console.warn(`Skipping ${id} after all fallbacks failed.`);

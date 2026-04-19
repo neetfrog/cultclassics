@@ -20,10 +20,20 @@ while ((match = itemRegex.exec(fileText))) {
   items.push({ id: match[1], title: match[2] });
 }
 
+function getCategoryFromId(id) {
+  if (id.startsWith('mu')) return 'music';
+  if (id.startsWith('m')) return 'movies';
+  if (id.startsWith('t')) return 'tv';
+  if (id.startsWith('b')) return 'books';
+  if (id.startsWith('g')) return 'games';
+  return 'movies';
+}
+
 const missing = [];
 for (const item of items) {
   const fileName = `${slugifyTitle(item.title)}-${item.id}.jpg`;
-  const filePath = path.join(process.cwd(), 'public', 'images', fileName);
+  const category = getCategoryFromId(item.id);
+  const filePath = path.join(process.cwd(), 'public', 'images', category, fileName);
   try {
     await access(filePath);
   } catch {

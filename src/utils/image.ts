@@ -11,7 +11,17 @@ function slugifyTitle(title: string) {
     .replace(/-+/g, "-");
 }
 
+function getCategoryFromId(id: string) {
+  if (id.startsWith("mu")) return "music";
+  if (id.startsWith("m")) return "movies";
+  if (id.startsWith("t")) return "tv";
+  if (id.startsWith("b")) return "books";
+  if (id.startsWith("g")) return "games";
+  return "movies";
+}
+
 export function getArtworkPath(item: Item) {
   const slug = slugifyTitle(item.title);
-  return `/images/${slug}-${item.id}.jpg`;
+  const category = getCategoryFromId(item.id);
+  return `/images/${category}/${slug}-${item.id}.jpg`;
 }
