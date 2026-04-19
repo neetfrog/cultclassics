@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { data, categories, Category, Item } from "./data";
+import { fetchCultData, type CategoryDefinition, type Category, type Item } from "./data";
 import { getArtworkPath, getArtworkExtensions } from "./utils/image";
 import Card from "./components/Card";
 import ItemDetailModal from "./components/ItemDetailModal";
@@ -23,11 +23,11 @@ const accentHex: Record<Category, string> = {
 
 const getDecade = (year: number) => `${Math.floor(year / 10) * 10}s`;
 
-function resolveItemById(itemId: string) {
-  for (const cat of categories) {
-    const item = data[cat.id].find((item) => item.id === itemId);
+function resolveItemById(itemId: string, data: Record<Category, Item[]>) {
+  for (const category of Object.keys(data) as Category[]) {
+    const item = data[category]?.find((item) => item.id === itemId);
     if (item) {
-      return { item, category: cat.id as Category };
+      return { item, category };
     }
   }
   return null;
@@ -46,7 +46,6 @@ function parseRoute(pathname: string, search: string, hash: string) {
   } else if (
     segments[0] === "category" &&
     segments[1] &&
-    categories.some((cat) => cat.id === segments[1]) &&
     segments[2] === "item" &&
     segments[3]
   ) {
@@ -219,6 +218,10 @@ function RandomModal({
 export default function App() {
   const { collections, toggleCollection, createCollection } = useCollections();
   const { notes, setNote } = useNotes();
+  const [categories, setCategories] = useState<CategoryDefinition[]>([]);
+  const [data, setData] = useState<Record<Category, Item[]>>({} as Record<Category, Item[]>);
+  const [loadingData, setLoadingData] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [activeCategory, setActiveCategory] = useStoredState<Category>(
     "cult-classics-active-category",
     () => {
@@ -245,19 +248,42 @@ export default function App() {
     item: Item;
     catId: Category;
   } | null>(null);
-  const [detailItem, setDetailItem] = useState<{ item: Item; catId: Category } | null>(() => {
-    if (typeof window === "undefined") return null;
-    const route = parseRoute(window.location.pathname, window.location.search, window.location.hash);
-    if (!route.itemId) return null;
-    const resolved = resolveItemById(route.itemId);
-    return resolved ? { item: resolved.item, catId: resolved.category } : null;
-  });
+  const [detailItem, setDetailItem] = useState<{ item: Item; catId: Category } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    fetchCultData()
+      .then((payload) => {
+        setCategories(payload.categories);
+        setData(payload.data);
+      })
+      .catch(() => setLoadError(true))
+      .finally(() => setLoadingData(false));
+  }, []);
+
+  useEffect(() => {
+    if (loadingData || loadError) return;
+    if (typeof window === "undefined") return;
+
+    const route = parseRoute(window.location.pathname, window.location.search, window.location.hash);
+    setView(route.view);
+    if (route.category) {
+      setActiveCategory(route.category);
+    }
+    if (route.itemId) {
+      const resolved = resolveItemById(route.itemId, data);
+      if (resolved) {
+        setDetailItem({ item: resolved.item, catId: resolved.category });
+        return;
+      }
+    }
+    setDetailItem(null);
+  }, [loadingData, loadError, data, setActiveCategory, setView]);
+
   const { favorites, toggle, isFavorite, count: favCount } = useFavorites();
 
-  const activeCat = categories.find((c) => c.id === activeCategory)!;
+  const activeCat = categories.find((c) => c.id === activeCategory) ?? categories[0]!;
 
   const openItemDetails = useCallback(
     (item: Item, catId: Category) => {
@@ -283,7 +309,7 @@ export default function App() {
         setActiveCategory(route.category);
       }
       if (route.itemId) {
-        const resolved = resolveItemById(route.itemId);
+        const resolved = resolveItemById(route.itemId, data);
         if (resolved) {
           setDetailItem({ item: resolved.item, catId: resolved.category });
           return;
@@ -308,7 +334,7 @@ export default function App() {
     window.history.replaceState(null, "", nextPath);
   }, [activeCategory, view, detailItem]);
 
-  const baseItems = useMemo(() => data[activeCategory], [activeCategory]);
+  const baseItems = useMemo(() => data[activeCategory] ?? [], [activeCategory, data]);
 
   const filtered = useMemo(() => {
     let items = [...baseItems];
@@ -376,6 +402,28 @@ export default function App() {
     (search ? 1 : 0) + (sortKey !== "default" ? 1 : 0) + (decadeFilter ? 1 : 0);
 
   const hex = accentHex[activeCategory];
+
+  if (loadingData) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-lg font-semibold">Loading catalog…</p>
+          <p className="text-sm text-gray-400 mt-2">Fetching the latest dynamic data.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-lg font-semibold">Failed to load data.</p>
+          <p className="text-sm text-gray-400 mt-2">Please refresh the page or try again later.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -671,6 +719,8 @@ export default function App() {
         {/* ── FAVORITES VIEW ── */}
         {view === "favorites" && (
           <FavoritesView
+            categories={categories}
+            data={data}
             favorites={favorites}
             collections={collections}
             onToggleFavorite={toggle}
@@ -681,6 +731,8 @@ export default function App() {
         {/* ── STATS VIEW ── */}
         {view === "stats" && (
           <StatsView
+            categories={categories}
+            data={data}
             favorites={favorites}
             onTagClick={(tag) => {
               setView("browse");

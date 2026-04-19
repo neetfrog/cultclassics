@@ -1,17 +1,19 @@
-import { data, categories, type Category, type Item } from "../data";
+import type { Category, CategoryDefinition, Item } from "../data";
 import Card from "./Card";
 import type { FavoriteCollection } from "../hooks/useCollections";
 
 interface FavoritesViewProps {
+  categories: CategoryDefinition[];
+  data: Record<Category, Item[]>;
   favorites: Set<string>;
   collections: FavoriteCollection[];
   onToggleFavorite: (id: string) => void;
   onOpenDetails?: (item: Item, category: Category) => void;
 }
 
-export default function FavoritesView({ favorites, collections, onToggleFavorite, onOpenDetails }: FavoritesViewProps) {
+export default function FavoritesView({ categories, data, favorites, collections, onToggleFavorite, onOpenDetails }: FavoritesViewProps) {
   const favoriteItems = categories.flatMap((cat) =>
-    data[cat.id]
+    (data[cat.id] ?? [])
       .filter((item) => favorites.has(item.id))
       .map((item) => ({ item, cat }))
   );

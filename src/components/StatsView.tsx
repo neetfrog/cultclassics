@@ -1,39 +1,41 @@
-import { data, categories } from "../data";
+import type { Category, CategoryDefinition, Item } from "../data";
 
 interface StatsViewProps {
+  categories: CategoryDefinition[];
+  data: Record<Category, Item[]>;
   favorites: Set<string>;
   onTagClick: (tag: string) => void;
   onDecadeClick: (decade: string) => void;
 }
 
-const totalItems = categories.reduce((a, c) => a + data[c.id].length, 0);
-const fiveStarItems = categories.reduce(
-  (a, c) => a + data[c.id].filter((i) => i.rating === 5).length,
-  0
-);
+export default function StatsView({ categories, data, favorites, onTagClick, onDecadeClick }: StatsViewProps) {
+  const totalItems = categories.reduce((a, c) => a + (data[c.id]?.length ?? 0), 0);
+  const fiveStarItems = categories.reduce(
+    (a, c) => a + (data[c.id]?.filter((i) => i.rating === 5).length ?? 0),
+    0
+  );
 
-const yearRange = (() => {
-  const years = categories.flatMap((c) => data[c.id].map((i) => i.year));
-  return { min: Math.min(...years), max: Math.max(...years) };
-})();
+  const yearRange = (() => {
+    const years = categories.flatMap((c) => (data[c.id] ?? []).map((i) => i.year));
+    return { min: Math.min(...years), max: Math.max(...years) };
+  })();
 
-const decades = (() => {
-  const decadeCounts: Record<string, number> = {};
-  categories.forEach((cat) => {
-    data[cat.id].forEach((item) => {
-      const decade = `${Math.floor(item.year / 10) * 10}s`;
-      decadeCounts[decade] = (decadeCounts[decade] || 0) + 1;
+  const decades = (() => {
+    const decadeCounts: Record<string, number> = {};
+    categories.forEach((cat) => {
+      (data[cat.id] ?? []).forEach((item) => {
+        const decade = `${Math.floor(item.year / 10) * 10}s`;
+        decadeCounts[decade] = (decadeCounts[decade] || 0) + 1;
+      });
     });
-  });
-  return Object.entries(decadeCounts)
-    .sort((a, b) => Number(a[0].replace("s", "")) - Number(b[0].replace("s", "")))
-    .map(([decade]) => decade);
-})();
+    return Object.entries(decadeCounts)
+      .sort((a, b) => Number(a[0].replace("s", "")) - Number(b[0].replace("s", "")))
+      .map(([decade]) => decade);
+  })();
 
-export default function StatsView({ favorites, onTagClick, onDecadeClick }: StatsViewProps) {
   const favByCategory: Record<string, number> = {};
   categories.forEach((c) => {
-    favByCategory[c.id] = data[c.id].filter((i) => favorites.has(i.id)).length;
+    favByCategory[c.id] = (data[c.id] ?? []).filter((i) => favorites.has(i.id)).length;
   });
 
   return (
@@ -88,10 +90,9 @@ export default function StatsView({ favorites, onTagClick, onDecadeClick }: Stat
         <h2 className="text-lg font-bold text-white mb-3">By Category</h2>
         <div className="space-y-3">
           {categories.map((cat) => {
-            const items = data[cat.id];
-            const pct = Math.round((items.length / totalItems) * 100);
-            const avgRating =
-              items.reduce((a, i) => a + i.rating, 0) / items.length;
+            const items = data[cat.id] ?? [];
+            const pct = totalItems > 0 ? Math.round((items.length / totalItems) * 100) : 0;
+            const avgRating = items.length > 0 ? items.reduce((a, i) => a + i.rating, 0) / items.length : 0;
             const fav = favByCategory[cat.id];
             return (
               <div
@@ -115,7 +116,6 @@ export default function StatsView({ favorites, onTagClick, onDecadeClick }: Stat
                     <span className="text-xs text-gray-400">{items.length} picks</span>
                   </div>
                 </div>
-                {/* Progress bar */}
                 <div className="w-full bg-gray-700/50 rounded-full h-1.5">
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"
@@ -135,7 +135,7 @@ export default function StatsView({ favorites, onTagClick, onDecadeClick }: Stat
           {(() => {
             const tagCounts: Record<string, { count: number; hex: string }> = {};
             categories.forEach((cat) => {
-              data[cat.id].forEach((item) => {
+              (data[cat.id] ?? []).forEach((item) => {
                 item.tags.forEach((tag) => {
                   if (!tagCounts[tag])
                     tagCounts[tag] = { count: 0, hex: cat.hex };
@@ -172,7 +172,7 @@ export default function StatsView({ favorites, onTagClick, onDecadeClick }: Stat
           {(() => {
             const decades: Record<string, number> = {};
             categories.forEach((cat) => {
-              data[cat.id].forEach((item) => {
+              (data[cat.id] ?? []).forEach((item) => {
                 const decade = `${Math.floor(item.year / 10) * 10}s`;
                 decades[decade] = (decades[decade] || 0) + 1;
               });
@@ -180,7 +180,7 @@ export default function StatsView({ favorites, onTagClick, onDecadeClick }: Stat
             const sorted = Object.entries(decades).sort((a, b) =>
               a[0].localeCompare(b[0])
             );
-            const max = Math.max(...sorted.map(([, v]) => v));
+            const max = sorted.length > 0 ? Math.max(...sorted.map(([, v]) => v)) : 1;
             return sorted.map(([decade, count]) => (
               <button
               key={decade}

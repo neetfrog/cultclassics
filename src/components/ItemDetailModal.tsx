@@ -5,6 +5,7 @@ import { FaRedditAlien } from "react-icons/fa";
 import { SiGoodreads, SiImdb, SiRottentomatoes, SiSpotify, SiWikipedia } from "react-icons/si";
 import { getArtworkPath, getArtworkExtensions } from "../utils/image";
 import { getExternalLinks } from "../utils/links";
+import { fetchWikipediaSummary, type WikiSummary } from "../utils/wiki";
 import { subredditMap } from "../subreddits";
 import type { FavoriteCollection } from "../hooks/useCollections";
 
@@ -47,6 +48,9 @@ export default function ItemDetailModal({
   const [imageAttempt, setImageAttempt] = useState(0);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [shareUrl, setShareUrl] = useState("#");
+  const [wikiData, setWikiData] = useState<WikiSummary | null>(null);
+  const [wikiLoading, setWikiLoading] = useState(false);
+  const [wikiError, setWikiError] = useState(false);
   const artworkExtensions = getArtworkExtensions();
   const imageSrc = getArtworkPath(item, artworkExtensions[imageAttempt]);
   const externalLinks = getExternalLinks(category, item.title);
@@ -76,6 +80,31 @@ export default function ItemDetailModal({
       setShareUrl(`${window.location.origin}/category/${category}/item/${item.id}`);
     }
   }, [category, item.id]);
+
+  useEffect(() => {
+    let active = true;
+    setWikiLoading(true);
+    setWikiError(false);
+    setWikiData(null);
+
+    fetchWikipediaSummary(item.title)
+      .then((data) => {
+        if (!active) return;
+        setWikiData(data);
+      })
+      .catch(() => {
+        if (!active) return;
+        setWikiError(true);
+      })
+      .finally(() => {
+        if (!active) return;
+        setWikiLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [item.title]);
 
   const visibleCollections = useMemo(() => {
     return collections.filter((collection) => {
@@ -183,6 +212,33 @@ export default function ItemDetailModal({
                 <p className="text-sm text-gray-300 leading-relaxed">{item.description}</p>
               </div>
               <div className="rounded-3xl border border-gray-700 bg-gray-950 p-4">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: accentHex }}>
+                    Wikipedia snapshot
+                  </span>
+                  {wikiLoading ? (
+                    <span className="text-xs text-gray-500">Loading…</span>
+                  ) : wikiError ? (
+                    <span className="text-xs text-gray-500">Unavailable</span>
+                  ) : null}
+                </div>
+                <div className="text-sm text-gray-300 leading-relaxed">
+                  {wikiLoading
+                    ? "Loading summary from Wikipedia..."
+                    : wikiData?.extract
+                    ? wikiData.extract
+                    : "Wikipedia summary not available for this item."
+                  }
+                </div>
+                {wikiData?.thumbnailUrl && (
+                  <img
+                    src={wikiData.thumbnailUrl}
+                    alt={`${item.title} Wikipedia thumbnail`}
+                    className="mt-4 w-full rounded-3xl object-cover"
+                  />
+                )}
+              </div>
+              <div className="rounded-3xl border border-gray-700 bg-gray-950 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: accentHex }}>
                   Why it became a cult classic
                 </p>
@@ -224,6 +280,17 @@ export default function ItemDetailModal({
                       </a>
                     );
                   })}
+                  {wikiData?.pageUrl && (
+                    <a
+                      href={wikiData.pageUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-gray-700 bg-gray-950 px-3 py-2 text-xs text-sky-200 hover:bg-gray-900 transition"
+                    >
+                      <SiWikipedia className="h-4 w-4" aria-hidden="true" />
+                      Wikipedia article
+                    </a>
+                  )}
                   {subredditUrl && (
                     <a
                       href={subredditUrl}
