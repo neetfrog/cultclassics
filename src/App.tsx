@@ -172,7 +172,6 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<Category>("movies");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("default");
-  const [minRating, setMinRating] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [view, setView] = useState<View>("browse");
   const [globalSearch, setGlobalSearch] = useState("");
@@ -201,9 +200,6 @@ export default function App() {
           item.tags.some((t) => t.toLowerCase().includes(q))
       );
     }
-    if (minRating > 0) {
-      items = items.filter((item) => item.rating >= minRating);
-    }
     switch (sortKey) {
       case "year-asc":
         items.sort((a, b) => a.year - b.year);
@@ -219,7 +215,7 @@ export default function App() {
         break;
     }
     return items;
-  }, [baseItems, search, sortKey, minRating]);
+  }, [baseItems, search, sortKey]);
 
   const globalResults = useMemo(() => {
     if (!globalSearch.trim()) return [];
@@ -248,11 +244,10 @@ export default function App() {
     setActiveCategory(id);
     setSearch("");
     setSortKey("default");
-    setMinRating(0);
     setShowFilters(false);
   };
 
-  const activeFilters = (search ? 1 : 0) + (minRating > 0 ? 1 : 0) + (sortKey !== "default" ? 1 : 0);
+  const activeFilters = (search ? 1 : 0) + (sortKey !== "default" ? 1 : 0);
 
   const hex = accentHex[activeCategory];
 
@@ -462,38 +457,11 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-                {/* Min rating */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                    Minimum rating
-                  </p>
-                  <div className="flex gap-2">
-                    {[0, 3, 4, 5].map((r) => (
-                      <button
-                        key={r}
-                        onClick={() => setMinRating(r)}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                          minRating === r
-                            ? "text-white border-transparent"
-                            : "bg-gray-700/40 border-gray-600/40 text-gray-400 hover:text-gray-200"
-                        }`}
-                        style={
-                          minRating === r
-                            ? { background: hex + "55", borderColor: hex + "88" }
-                            : {}
-                        }
-                      >
-                        {r === 0 ? "Any" : `${"★".repeat(r)}+`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
                 {/* Reset */}
                 {activeFilters > 0 && (
                   <button
                     onClick={() => {
                       setSortKey("default");
-                      setMinRating(0);
                       setSearch("");
                     }}
                     className="text-xs text-gray-500 hover:text-gray-300 underline transition-colors"
@@ -505,11 +473,10 @@ export default function App() {
             )}
 
             {/* Results info */}
-            {(search || minRating > 0) && (
+            {search && (
               <p className="text-xs text-gray-500 mb-3">
                 {filtered.length} result{filtered.length !== 1 ? "s" : ""}
                 {search && ` for "${search}"`}
-                {minRating > 0 && ` · ${minRating}★+`}
               </p>
             )}
 
@@ -522,7 +489,6 @@ export default function App() {
                 <button
                   onClick={() => {
                     setSearch("");
-                    setMinRating(0);
                     setSortKey("default");
                   }}
                   className="mt-4 text-xs text-gray-500 underline hover:text-gray-300"
@@ -536,6 +502,7 @@ export default function App() {
                   <Card
                     key={item.id}
                     item={item}
+                    category={activeCategory}
                     accentHex={hex}
                     isFavorite={isFavorite(item.id)}
                     onToggleFavorite={toggle}
@@ -550,6 +517,7 @@ export default function App() {
                   <Card
                     key={item.id}
                     item={item}
+                    category={activeCategory}
                     accentHex={hex}
                     isFavorite={isFavorite(item.id)}
                     onToggleFavorite={toggle}
@@ -589,6 +557,7 @@ export default function App() {
                 <Card
                   key={item.id}
                   item={item}
+                  category={cat.id}
                   accentHex={cat.hex}
                   isFavorite={isFavorite(item.id)}
                   onToggleFavorite={toggle}

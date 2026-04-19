@@ -55,6 +55,7 @@ export default function FavoritesView({ favorites, onToggleFavorite }: Favorites
                 <Card
                   key={item.id}
                   item={item}
+                  category={cat.id}
                   accentHex={cat.hex}
                   isFavorite={true}
                   onToggleFavorite={onToggleFavorite}

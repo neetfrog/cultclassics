@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { Item } from "../data";
+import type { Category, Item } from "../data";
+import type { IconType } from "react-icons";
+import { FaRedditAlien } from "react-icons/fa";
+import { SiGoodreads, SiImdb, SiRottentomatoes, SiSpotify, SiWikipedia } from "react-icons/si";
 import { getArtworkPath, getArtworkExtensions } from "../utils/image";
+import { getExternalLinks } from "../utils/links";
 import { subredditMap } from "../subreddits";
 
 interface CardProps {
   item: Item;
+  category: Category;
   accentHex: string;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
@@ -14,6 +19,7 @@ interface CardProps {
 
 export default function Card({
   item,
+  category,
   accentHex,
   isFavorite,
   onToggleFavorite,
@@ -23,10 +29,27 @@ export default function Card({
   const [expanded, setExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageAttempt, setImageAttempt] = useState(0);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
   const artworkExtensions = getArtworkExtensions();
   const imageSrc = getArtworkPath(item, artworkExtensions[imageAttempt]);
   const subreddit = subredditMap[item.id];
   const subredditUrl = subreddit ? `https://www.reddit.com/r/${subreddit}` : undefined;
+  const externalLinks = getExternalLinks(category, item.title);
+
+  const iconMap: Record<string, IconType> = {
+    imdb: SiImdb,
+    rotten: SiRottentomatoes,
+    wikipedia: SiWikipedia,
+    goodreads: SiGoodreads,
+    spotify: SiSpotify,
+  };
+
+  const openImageModal = (event: React.MouseEvent | React.KeyboardEvent) => {
+    event.stopPropagation();
+    if (!imageError) {
+      setImageModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     setImageError(false);
@@ -42,28 +65,50 @@ export default function Card({
         style={expanded ? { boxShadow: `0 0 0 1px ${accentHex}33` } : {}}
       >
         {/* Grid card top */}
-        <button
-          className="flex-1 p-4 text-left focus:outline-none active:bg-gray-700/30"
+        <div
+          role="button"
+          tabIndex={0}
+          className="flex-1 p-4 text-left focus:outline-none cursor-pointer"
           onClick={() => setExpanded((p) => !p)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setExpanded((p) => !p);
+            }
+          }}
         >
           <div className="flex items-start justify-between mb-3">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0"
+              className="relative w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0"
               style={{ background: `${accentHex}22` }}
             >
               {!imageError ? (
-                <img
-                  src={imageSrc}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                  onError={() => {
-                    if (imageAttempt < artworkExtensions.length - 1) {
-                      setImageAttempt((attempt) => attempt + 1);
-                    } else {
-                      setImageError(true);
-                    }
-                  }}
-                />
+                <>
+                  <img
+                    src={imageSrc}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                    onError={() => {
+                      if (imageAttempt < artworkExtensions.length - 1) {
+                        setImageAttempt((attempt) => attempt + 1);
+                      } else {
+                        setImageError(true);
+                      }
+                    }}
+                  />
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label="View artwork larger"
+                    onClick={openImageModal}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        openImageModal(event);
+                      }
+                    }}
+                    className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors cursor-zoom-in"
+                  />
+                </>
               ) : (
                 <span className="text-2xl">{item.emoji}</span>
               )}
@@ -90,7 +135,7 @@ export default function Card({
             {item.title}
           </h3>
           <p className="text-xs text-gray-500 mb-2">{item.year} · {item.genre}</p>
-        </button>
+        </div>
 
         {/* Tags */}
         <div className="px-4 pb-3 flex flex-wrap gap-1">
@@ -112,15 +157,36 @@ export default function Card({
           {item.description}
         </p>
 
+        {externalLinks.length > 0 && (
+          <div className="px-4 pb-3 flex flex-wrap gap-2">
+            {externalLinks.map((link) => {
+              const Icon = iconMap[link.icon];
+              return (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{link.label}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
+
         {subredditUrl && (
           <div className="px-4 pb-3">
             <a
               href={subredditUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
             >
-              r/{subreddit} ↗
+              <FaRedditAlien className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>r/{subreddit}</span>
             </a>
           </div>
         )}
@@ -160,28 +226,50 @@ export default function Card({
       }`}
       style={expanded ? { boxShadow: `0 0 0 1px ${accentHex}33` } : {}}
     >
-      <button
-        className="w-full text-left p-4 flex items-start gap-3 focus:outline-none active:bg-gray-700/20"
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full text-left p-4 flex items-start gap-3 focus:outline-none cursor-pointer"
         onClick={() => setExpanded((p) => !p)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setExpanded((p) => !p);
+          }
+        }}
       >
         {/* Artwork badge */}
         <div
-          className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center"
+          className="relative flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center"
           style={{ background: `${accentHex}20` }}
         >
           {!imageError ? (
-            <img
-              src={imageSrc}
-              alt={item.title}
-              className="w-full h-full object-cover"
-              onError={() => {
-                if (imageAttempt < artworkExtensions.length - 1) {
-                  setImageAttempt((attempt) => attempt + 1);
-                } else {
-                  setImageError(true);
-                }
-              }}
-            />
+            <>
+              <img
+                src={imageSrc}
+                alt={item.title}
+                className="w-full h-full object-cover"
+                onError={() => {
+                  if (imageAttempt < artworkExtensions.length - 1) {
+                    setImageAttempt((attempt) => attempt + 1);
+                  } else {
+                    setImageError(true);
+                  }
+                }}
+              />
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label="View artwork larger"
+                onClick={openImageModal}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    openImageModal(event);
+                  }
+                }}
+                className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors cursor-zoom-in"
+              />
+            </>
           ) : (
             <span className="text-2xl">{item.emoji}</span>
           )}
@@ -210,15 +298,35 @@ export default function Card({
           </div>
           <p className="text-xs text-gray-500 mt-0.5">{item.genre}</p>
           <p className="text-gray-400 text-sm mt-2 line-clamp-2">{item.description}</p>
+          {externalLinks.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {externalLinks.map((link) => {
+                const Icon = iconMap[link.icon];
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{link.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+          )}
           {subredditUrl && (
             <div className="mt-2">
               <a
                 href={subredditUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-sky-300 hover:text-sky-200 transition-colors"
               >
-                r/{subreddit} ↗
+                <FaRedditAlien className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>r/{subreddit}</span>
               </a>
             </div>
           )}
@@ -246,7 +354,7 @@ export default function Card({
             ))}
           </div>
         </div>
-      </button>
+      </div>
 
       {/* Expanded content */}
       {expanded && (
@@ -259,6 +367,32 @@ export default function Card({
               Why it's a cult classic
             </p>
             <p className="text-gray-200 text-sm leading-relaxed">{item.whyCult}</p>
+          </div>
+        </div>
+      )}
+
+      {imageModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+          onClick={() => setImageModalOpen(false)}
+        >
+          <div
+            className="relative max-w-full max-h-full overflow-hidden rounded-3xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setImageModalOpen(false)}
+              className="absolute top-4 right-4 z-10 rounded-full bg-black/70 p-2 text-white hover:bg-black/90"
+              aria-label="Close image preview"
+            >
+              ✕
+            </button>
+            <img
+              src={imageSrc}
+              alt={item.title}
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-3xl"
+            />
           </div>
         </div>
       )}
