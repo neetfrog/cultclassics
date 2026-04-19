@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Item } from "../data";
-import StarRating from "./StarRating";
+import { getArtworkPath } from "../utils/image";
 
 interface CardProps {
   item: Item;
@@ -18,6 +18,8 @@ export default function Card({
   viewMode,
 }: CardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const imageSrc = getArtworkPath(item);
 
   if (viewMode === "grid") {
     return (
@@ -34,10 +36,19 @@ export default function Card({
         >
           <div className="flex items-start justify-between mb-3">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+              className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0"
               style={{ background: `${accentHex}22` }}
             >
-              {item.emoji}
+              {!imageError ? (
+                <img
+                  src={imageSrc}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <span className="text-2xl">{item.emoji}</span>
+              )}
             </div>
             <button
               className={`p-1.5 rounded-full transition-all ${
@@ -61,7 +72,6 @@ export default function Card({
             {item.title}
           </h3>
           <p className="text-xs text-gray-500 mb-2">{item.year} · {item.genre}</p>
-          <StarRating rating={item.rating} />
         </button>
 
         {/* Tags */}
@@ -82,11 +92,11 @@ export default function Card({
 
         {/* Expand toggle */}
         <button
-          className="w-full text-center py-2.5 border-t border-gray-700/50 text-xs text-gray-500 hover:text-gray-300 hover:bg-gray-700/20 transition-colors flex items-center justify-center gap-1"
+          className="w-full text-center py-3 border-t border-gray-700/50 text-sm text-gray-300 hover:text-white hover:bg-gray-700/20 transition-colors flex items-center justify-center gap-2 font-semibold"
           onClick={() => setExpanded((p) => !p)}
         >
-          <span>{expanded ? "Less" : "Why cult?"}</span>
-          <span className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>▾</span>
+          <span>{expanded ? "Show less" : "Show more"}</span>
+          <span className={`text-lg transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>▾</span>
         </button>
 
         {/* Expanded content */}
@@ -119,12 +129,21 @@ export default function Card({
         className="w-full text-left p-4 flex items-start gap-3 focus:outline-none active:bg-gray-700/20"
         onClick={() => setExpanded((p) => !p)}
       >
-        {/* Emoji badge */}
+        {/* Artwork badge */}
         <div
-          className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+          className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center"
           style={{ background: `${accentHex}20` }}
         >
-          {item.emoji}
+          {!imageError ? (
+            <img
+              src={imageSrc}
+              alt={item.title}
+              className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <span className="text-2xl">{item.emoji}</span>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -150,14 +169,12 @@ export default function Card({
           </div>
           <p className="text-xs text-gray-500 mt-0.5">{item.genre}</p>
           <p className="text-gray-400 text-sm mt-2 line-clamp-2">{item.description}</p>
-          <div className="flex items-center justify-between mt-1.5">
-            <StarRating rating={item.rating} />
-            <span
-              className={`text-gray-400 text-base transition-transform duration-300 ${
-                expanded ? "rotate-180" : ""
-              }`}
-            >
-              ▾
+          <div className="mt-3">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-gray-300">
+              {expanded ? "Show less" : "Show more"}
+              <span className={`text-lg transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}>
+                ▾
+              </span>
             </span>
           </div>
           {/* Tags */}

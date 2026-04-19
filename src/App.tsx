@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { data, categories, Category, Item } from "./data";
+import { getArtworkPath } from "./utils/image";
 import Card from "./components/Card";
 import StatsView from "./components/StatsView";
 import FavoritesView from "./components/FavoritesView";
@@ -35,6 +36,13 @@ function RandomModal({
   onClose: () => void;
   onNext: () => void;
 }) {
+  const [modalImageError, setModalImageError] = useState(false);
+  const modalImageSrc = getArtworkPath(item);
+
+  useEffect(() => {
+    setModalImageError(false);
+  }, [item.id]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -71,13 +79,22 @@ function RandomModal({
             <span className="text-xs text-gray-500">{item.year}</span>
           </div>
 
-          {/* Emoji + Title */}
+          {/* Artwork + Title */}
           <div className="flex items-center gap-4">
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+              className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 bg-gray-950"
               style={{ background: catHex + "22" }}
             >
-              {item.emoji}
+              {!modalImageError ? (
+                <img
+                  src={modalImageSrc}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                  onError={() => setModalImageError(true)}
+                />
+              ) : (
+                <span className="text-3xl">{item.emoji}</span>
+              )}
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-white leading-tight">{item.title}</h2>

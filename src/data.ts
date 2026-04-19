@@ -10,6 +10,7 @@ export interface Item {
   whyCult: string;
   rating: number; // out of 5
   emoji: string;
+  image?: string;
 }
 
 export const categories: {
