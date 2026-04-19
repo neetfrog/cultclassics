@@ -13,6 +13,7 @@ interface CardProps {
   accentHex: string;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
+  onOpenDetails?: (item: Item) => void;
   viewMode: "list" | "grid";
   onTagClick?: (tag: string) => void;
 }
@@ -23,6 +24,7 @@ export default function Card({
   accentHex,
   isFavorite,
   onToggleFavorite,
+  onOpenDetails,
   viewMode,
   onTagClick,
 }: CardProps) {
@@ -35,6 +37,11 @@ export default function Card({
   const subreddit = subredditMap[item.id];
   const subredditUrl = subreddit ? `https://www.reddit.com/r/${subreddit}` : undefined;
   const externalLinks = getExternalLinks(category, item.title);
+
+  const openDetails = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onOpenDetails?.(item);
+  };
 
   const iconMap: Record<string, IconType> = {
     imdb: SiImdb,
@@ -139,20 +146,32 @@ export default function Card({
                 <span className="text-2xl">{item.emoji}</span>
               )}
             </div>
-            <button
-              className={`p-1.5 rounded-full transition-all ${
-                isFavorite
-                  ? "text-red-400 scale-110"
-                  : "text-gray-600 hover:text-gray-400"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(item.id);
-              }}
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              {isFavorite ? "❤️" : "🤍"}
-            </button>
+            <div className="flex items-center gap-2">
+              {onOpenDetails && (
+                <button
+                  type="button"
+                  onClick={openDetails}
+                  className="p-1.5 rounded-full border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition"
+                  aria-label="Open item details"
+                >
+                  ℹ️
+                </button>
+              )}
+              <button
+                className={`p-1.5 rounded-full transition-all ${
+                  isFavorite
+                    ? "text-red-400 scale-110"
+                    : "text-gray-600 hover:text-gray-400"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(item.id);
+                }}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                {isFavorite ? "❤️" : "🤍"}
+              </button>
+            </div>
           </div>
           <h3
             className="font-bold text-white text-sm leading-tight mb-1 line-clamp-2"
@@ -304,10 +323,20 @@ export default function Card({
             <h3 className="font-bold text-white leading-tight text-sm sm:text-base">
               {item.title}
             </h3>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-gray-500 text-xs mt-0.5">{item.year}</span>
+              {onOpenDetails && (
+                <button
+                  type="button"
+                  onClick={openDetails}
+                  className="p-1 rounded-full border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition"
+                  aria-label="Open item details"
+                >
+                  ℹ️
+                </button>
+              )}
               <button
-                className={`p-1 rounded-full transition-all ml-1 ${
+                className={`p-1 rounded-full transition-all ${
                   isFavorite ? "text-red-400 scale-110" : "text-gray-600 hover:text-gray-400"
                 }`}
                 onClick={(e) => {

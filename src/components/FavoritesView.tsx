@@ -1,12 +1,15 @@
-import { data, categories } from "../data";
+import { data, categories, type Category, type Item } from "../data";
 import Card from "./Card";
+import type { FavoriteCollection } from "../hooks/useCollections";
 
 interface FavoritesViewProps {
   favorites: Set<string>;
+  collections: FavoriteCollection[];
   onToggleFavorite: (id: string) => void;
+  onOpenDetails?: (item: Item, category: Category) => void;
 }
 
-export default function FavoritesView({ favorites, onToggleFavorite }: FavoritesViewProps) {
+export default function FavoritesView({ favorites, collections, onToggleFavorite, onOpenDetails }: FavoritesViewProps) {
   const favoriteItems = categories.flatMap((cat) =>
     data[cat.id]
       .filter((item) => favorites.has(item.id))
@@ -35,6 +38,23 @@ export default function FavoritesView({ favorites, onToggleFavorite }: Favorites
         </div>
       </div>
 
+      {collections.length > 0 && (
+        <div className="grid gap-2 sm:grid-cols-3 mt-3">
+          {collections.map((collection) => (
+            <div
+              key={collection.id}
+              className="rounded-2xl border border-gray-700/60 bg-gray-800/80 p-3"
+            >
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                {collection.name}
+              </p>
+              <p className="text-2xl font-bold text-white">{collection.itemIds.length}</p>
+              <p className="text-xs text-gray-500">items</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {categories.map((cat) => {
         const catFavs = favoriteItems.filter((fi) => fi.cat.id === cat.id);
         if (catFavs.length === 0) return null;
@@ -59,6 +79,7 @@ export default function FavoritesView({ favorites, onToggleFavorite }: Favorites
                   accentHex={cat.hex}
                   isFavorite={true}
                   onToggleFavorite={onToggleFavorite}
+                  onOpenDetails={onOpenDetails}
                   viewMode="list"
                 />
               ))}

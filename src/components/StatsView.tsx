@@ -2,6 +2,8 @@ import { data, categories } from "../data";
 
 interface StatsViewProps {
   favorites: Set<string>;
+  onTagClick: (tag: string) => void;
+  onDecadeClick: (decade: string) => void;
 }
 
 const totalItems = categories.reduce((a, c) => a + data[c.id].length, 0);
@@ -15,7 +17,20 @@ const yearRange = (() => {
   return { min: Math.min(...years), max: Math.max(...years) };
 })();
 
-export default function StatsView({ favorites }: StatsViewProps) {
+const decades = (() => {
+  const decadeCounts: Record<string, number> = {};
+  categories.forEach((cat) => {
+    data[cat.id].forEach((item) => {
+      const decade = `${Math.floor(item.year / 10) * 10}s`;
+      decadeCounts[decade] = (decadeCounts[decade] || 0) + 1;
+    });
+  });
+  return Object.entries(decadeCounts)
+    .sort((a, b) => Number(a[0].replace("s", "")) - Number(b[0].replace("s", "")))
+    .map(([decade]) => decade);
+})();
+
+export default function StatsView({ favorites, onTagClick, onDecadeClick }: StatsViewProps) {
   const favByCategory: Record<string, number> = {};
   categories.forEach((c) => {
     favByCategory[c.id] = data[c.id].filter((i) => favorites.has(i.id)).length;
@@ -46,6 +61,38 @@ export default function StatsView({ favorites }: StatsViewProps) {
               <span className="text-xs text-gray-400">{stat.label}</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Quick decade picks */}
+      <div>
+        <h2 className="text-lg font-bold text-white mb-3">Quick decade picks</h2>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {decades.slice(0, 4).map((decade) => (
+            <button
+              key={decade}
+              type="button"
+              onClick={() => onDecadeClick(decade)}
+              className="rounded-full border border-gray-700/60 bg-gray-800/80 px-4 py-2 text-xs font-semibold text-gray-200 hover:border-gray-500 hover:text-white transition"
+            >
+              {decade} cult picks
+            </button>
+          ))}
+        </div>
+        <div className="rounded-2xl border border-gray-700/60 bg-gray-800/80 p-4">
+          <p className="text-xs text-gray-400 mb-2">Tap a decade to filter the browse view by that era.</p>
+          <div className="flex flex-wrap gap-2">
+            {decades.map((decade) => (
+              <button
+                key={decade}
+                type="button"
+                onClick={() => onDecadeClick(decade)}
+                className="rounded-full border border-gray-700/60 bg-gray-950 px-3 py-1 text-xs text-gray-400 hover:border-gray-500 hover:text-white transition"
+              >
+                {decade}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -113,9 +160,11 @@ export default function StatsView({ favorites }: StatsViewProps) {
               .sort((a, b) => b[1].count - a[1].count)
               .slice(0, 30)
               .map(([tag, { count, hex }]) => (
-                <span
+                <button
                   key={tag}
-                  className="text-xs px-2.5 py-1 rounded-full text-white/80 font-medium"
+                  type="button"
+                  onClick={() => onTagClick(tag)}
+                  className="text-xs px-2.5 py-1 rounded-full text-white/80 font-medium transition hover:text-white"
                   style={{
                     background: `${hex}33`,
                     border: `1px solid ${hex}44`,
@@ -123,7 +172,7 @@ export default function StatsView({ favorites }: StatsViewProps) {
                   }}
                 >
                   {tag}
-                </span>
+                </button>
               ));
           })()}
         </div>
@@ -146,18 +195,23 @@ export default function StatsView({ favorites }: StatsViewProps) {
             );
             const max = Math.max(...sorted.map(([, v]) => v));
             return sorted.map(([decade, count]) => (
-              <div key={decade} className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-10 text-right flex-shrink-0">
-                  {decade}
-                </span>
-                <div className="flex-1 bg-gray-700/50 rounded-full h-2">
-                  <div
-                    className="h-2 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-500"
-                    style={{ width: `${(count / max) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-400 w-6 flex-shrink-0">{count}</span>
+              <button
+              key={decade}
+              type="button"
+              onClick={() => onDecadeClick(decade)}
+              className="flex w-full items-center gap-3 rounded-2xl bg-gray-950 p-3 transition hover:bg-gray-900"
+            >
+              <span className="text-xs text-gray-400 w-10 text-right flex-shrink-0">
+                {decade}
+              </span>
+              <div className="flex-1 bg-gray-700/50 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-500"
+                  style={{ width: `${(count / max) * 100}%` }}
+                />
               </div>
+              <span className="text-xs text-gray-400 w-6 flex-shrink-0">{count}</span>
+            </button>
             ));
           })()}
         </div>

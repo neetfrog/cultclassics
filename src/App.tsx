@@ -2,9 +2,13 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { data, categories, Category, Item } from "./data";
 import { getArtworkPath, getArtworkExtensions } from "./utils/image";
 import Card from "./components/Card";
+import ItemDetailModal from "./components/ItemDetailModal";
 import StatsView from "./components/StatsView";
 import FavoritesView from "./components/FavoritesView";
 import { useFavorites } from "./hooks/useFavorites";
+import { useCollections } from "./hooks/useCollections";
+import { useNotes } from "./hooks/useNotes";
+import { useStoredState } from "./hooks/useStoredState";
 
 type SortKey = "default" | "year-asc" | "year-desc" | "rating" | "a-z";
 type View = "browse" | "favorites" | "stats";
@@ -16,6 +20,50 @@ const accentHex: Record<Category, string> = {
   games: "#22c55e",
   music: "#3b82f6",
 };
+
+const getDecade = (year: number) => `${Math.floor(year / 10) * 10}s`;
+
+function resolveItemById(itemId: string) {
+  for (const cat of categories) {
+    const item = data[cat.id].find((item) => item.id === itemId);
+    if (item) {
+      return { item, category: cat.id as Category };
+    }
+  }
+  return null;
+}
+
+function parseRoute(pathname: string, search: string, hash: string) {
+  const trimmedHash = hash.replace(/^#/, "");
+  const query = new URLSearchParams(search).get("item") || trimmedHash.replace(/^item=/, "") || "";
+  const segments = pathname.split("/").filter(Boolean);
+  let view: View = "browse";
+  let category: Category | undefined;
+  let itemId: string | undefined;
+
+  if (segments[0] === "item" && segments[1]) {
+    itemId = decodeURIComponent(segments[1]);
+  } else if (
+    segments[0] === "category" &&
+    segments[1] &&
+    categories.some((cat) => cat.id === segments[1]) &&
+    segments[2] === "item" &&
+    segments[3]
+  ) {
+    category = segments[1] as Category;
+    itemId = decodeURIComponent(segments[3]);
+  } else if (segments[0] === "favorites") {
+    view = "favorites";
+  } else if (segments[0] === "stats") {
+    view = "stats";
+  }
+
+  if (!itemId && query) {
+    itemId = query;
+  }
+
+  return { view, category, itemId };
+}
 
 function RandomModal({
   item,
@@ -169,16 +217,41 @@ function RandomModal({
 }
 
 export default function App() {
-  const [activeCategory, setActiveCategory] = useState<Category>("movies");
+  const { collections, toggleCollection, createCollection } = useCollections();
+  const { notes, setNote } = useNotes();
+  const [activeCategory, setActiveCategory] = useStoredState<Category>(
+    "cult-classics-active-category",
+    () => {
+      if (typeof window !== "undefined") {
+        const route = parseRoute(window.location.pathname, window.location.search, window.location.hash);
+        return route.category ?? "movies";
+      }
+      return "movies";
+    }
+  );
+  const [sortKey, setSortKey] = useStoredState<SortKey>("cult-classics-sort-key", "default");
+  const [viewMode, setViewMode] = useStoredState<"list" | "grid">("cult-classics-view-mode", "list");
+  const [view, setView] = useStoredState<View>("cult-classics-view", () => {
+    if (typeof window !== "undefined") {
+      const route = parseRoute(window.location.pathname, window.location.search, window.location.hash);
+      return route.view;
+    }
+    return "browse";
+  });
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("default");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [view, setView] = useState<View>("browse");
   const [globalSearch, setGlobalSearch] = useState("");
+  const [decadeFilter, setDecadeFilter] = useState<string | null>(null);
   const [randomItem, setRandomItem] = useState<{
     item: Item;
     catId: Category;
   } | null>(null);
+  const [detailItem, setDetailItem] = useState<{ item: Item; catId: Category } | null>(() => {
+    if (typeof window === "undefined") return null;
+    const route = parseRoute(window.location.pathname, window.location.search, window.location.hash);
+    if (!route.itemId) return null;
+    const resolved = resolveItemById(route.itemId);
+    return resolved ? { item: resolved.item, catId: resolved.category } : null;
+  });
   const [showFilters, setShowFilters] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -186,10 +259,62 @@ export default function App() {
 
   const activeCat = categories.find((c) => c.id === activeCategory)!;
 
+  const openItemDetails = useCallback(
+    (item: Item, catId: Category) => {
+      setDetailItem({ item, catId });
+      const nextPath = `/category/${catId}/item/${item.id}`;
+      window.history.pushState(null, "", nextPath);
+    },
+    []
+  );
+
+  const closeItemDetails = useCallback(() => {
+    setDetailItem(null);
+    const nextPath = view === "browse" ? `/category/${activeCategory}` : `/${view}`;
+    window.history.replaceState(null, "", nextPath);
+  }, [activeCategory, view]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === "undefined") return;
+      const route = parseRoute(window.location.pathname, window.location.search, window.location.hash);
+      setView(route.view);
+      if (route.category) {
+        setActiveCategory(route.category);
+      }
+      if (route.itemId) {
+        const resolved = resolveItemById(route.itemId);
+        if (resolved) {
+          setDetailItem({ item: resolved.item, catId: resolved.category });
+          return;
+        }
+      }
+      setDetailItem(null);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [setActiveCategory, setView]);
+
+  useEffect(() => {
+    if (detailItem) {
+      setActiveCategory(detailItem.catId);
+    }
+  }, [detailItem, setActiveCategory]);
+
+  useEffect(() => {
+    if (detailItem) return;
+    const nextPath = view === "browse" ? `/category/${activeCategory}` : `/${view}`;
+    window.history.replaceState(null, "", nextPath);
+  }, [activeCategory, view, detailItem]);
+
   const baseItems = useMemo(() => data[activeCategory], [activeCategory]);
 
   const filtered = useMemo(() => {
     let items = [...baseItems];
+    if (decadeFilter) {
+      items = items.filter((item) => getDecade(item.year) === decadeFilter);
+    }
     const q = search.toLowerCase().trim();
     if (q) {
       items = items.filter(
@@ -215,7 +340,7 @@ export default function App() {
         break;
     }
     return items;
-  }, [baseItems, search, sortKey]);
+  }, [baseItems, search, sortKey, decadeFilter]);
 
   const globalResults = useMemo(() => {
     if (!globalSearch.trim()) return [];
@@ -247,7 +372,8 @@ export default function App() {
     setShowFilters(false);
   };
 
-  const activeFilters = (search ? 1 : 0) + (sortKey !== "default" ? 1 : 0);
+  const activeFilters =
+    (search ? 1 : 0) + (sortKey !== "default" ? 1 : 0) + (decadeFilter ? 1 : 0);
 
   const hex = accentHex[activeCategory];
 
@@ -473,10 +599,20 @@ export default function App() {
             )}
 
             {/* Results info */}
-            {search && (
+            {(search || decadeFilter) && (
               <p className="text-xs text-gray-500 mb-3">
                 {filtered.length} result{filtered.length !== 1 ? "s" : ""}
                 {search && ` for "${search}"`}
+                {search && decadeFilter && ", "}
+                {decadeFilter && ` from ${decadeFilter}`}
+                {decadeFilter && (
+                  <button
+                    onClick={() => setDecadeFilter(null)}
+                    className="ml-2 text-xs text-gray-300 underline hover:text-white"
+                  >
+                    Clear decade
+                  </button>
+                )}
               </p>
             )}
 
@@ -506,6 +642,7 @@ export default function App() {
                     accentHex={hex}
                     isFavorite={isFavorite(item.id)}
                     onToggleFavorite={toggle}
+                    onOpenDetails={(item) => openItemDetails(item, activeCategory)}
                     onTagClick={(tag) => setSearch(tag)}
                     viewMode="grid"
                   />
@@ -521,6 +658,7 @@ export default function App() {
                     accentHex={hex}
                     isFavorite={isFavorite(item.id)}
                     onToggleFavorite={toggle}
+                    onOpenDetails={(item) => openItemDetails(item, activeCategory)}
                     onTagClick={(tag) => setSearch(tag)}
                     viewMode="list"
                   />
@@ -534,12 +672,28 @@ export default function App() {
         {view === "favorites" && (
           <FavoritesView
             favorites={favorites}
+            collections={collections}
             onToggleFavorite={toggle}
+            onOpenDetails={(item, category) => openItemDetails(item, category)}
           />
         )}
 
         {/* ── STATS VIEW ── */}
-        {view === "stats" && <StatsView favorites={favorites} />}
+        {view === "stats" && (
+          <StatsView
+            favorites={favorites}
+            onTagClick={(tag) => {
+              setView("browse");
+              setSearch(tag);
+              setDecadeFilter(null);
+            }}
+            onDecadeClick={(decade) => {
+              setView("browse");
+              setDecadeFilter(decade);
+              setSearch("");
+            }}
+          />
+        )}
 
         {/* ── GLOBAL SEARCH RESULTS overlay ── */}
         {view !== "browse" && globalSearch && (
@@ -561,6 +715,7 @@ export default function App() {
                   accentHex={cat.hex}
                   isFavorite={isFavorite(item.id)}
                   onToggleFavorite={toggle}
+                  onOpenDetails={(item) => openItemDetails(item, cat.id)}
                   viewMode="list"
                 />
               ))
@@ -603,6 +758,25 @@ export default function App() {
           ))}
         </div>
       </nav>
+
+      {detailItem && (() => {
+        const cat = categories.find((c) => c.id === detailItem.catId)!;
+        return (
+          <ItemDetailModal
+            item={detailItem.item}
+            category={detailItem.catId}
+            accentHex={cat.hex}
+            isFavorite={isFavorite(detailItem.item.id)}
+            note={notes[detailItem.item.id] ?? ""}
+            collections={collections}
+            onToggleFavorite={toggle}
+            onNoteChange={setNote}
+            onToggleCollection={toggleCollection}
+            onCreateCollection={createCollection}
+            onClose={closeItemDetails}
+          />
+        );
+      })()}
 
       {/* ── RANDOM MODAL ── */}
       {randomItem && (() => {
