@@ -394,6 +394,12 @@ export default function App() {
 
   const visibleItems = filtered.slice(0, visibleCount);
 
+  const availableDecades = useMemo(() => {
+    const decades = new Set<string>();
+    baseItems.forEach((item) => decades.add(getDecade(item.year)));
+    return Array.from(decades).sort((a, b) => Number(a.replace("s", "")) - Number(b.replace("s", "")));
+  }, [baseItems]);
+
   const globalResults = useMemo(() => {
     if (!globalSearch.trim()) return [];
     const q = globalSearch.toLowerCase().trim();
@@ -619,6 +625,43 @@ export default function App() {
                 )}
               </button>
             </div>
+
+            {/* Quick decade picks */}
+            {availableDecades.length > 0 && (
+              <div className="rounded-2xl border border-gray-700/60 bg-gray-800/80 p-4 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400">Quick decade picks</p>
+                  {decadeFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setDecadeFilter(null)}
+                      className="text-xs text-gray-400 hover:text-white underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {availableDecades.map((decade) => (
+                    <button
+                      key={decade}
+                      type="button"
+                      onClick={() => {
+                        setDecadeFilter(decade);
+                        setSearch("");
+                      }}
+                      className={`rounded-full border px-3 py-1 text-xs transition ${
+                        decadeFilter === decade
+                          ? "border-transparent bg-white text-gray-950"
+                          : "border-gray-700/60 bg-gray-950 text-gray-400 hover:border-gray-500 hover:text-white"
+                      }`}
+                    >
+                      {decade}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Filter panel */}
             {showFilters && (

@@ -67,26 +67,6 @@ export default function StatsView({ categories, data, favorites, onTagClick, onD
       </div>
 
       <div>
-        <h2 className="text-lg font-bold text-white mb-3">Quick decade picks</h2>
-        <div className="rounded-2xl border border-gray-700/60 bg-gray-800/80 p-4">
-          <p className="text-xs text-gray-400 mb-2">Tap a decade to filter the browse view by that era.</p>
-          <div className="flex flex-wrap gap-2">
-            {decades.map((decade) => (
-              <button
-                key={decade}
-                type="button"
-                onClick={() => onDecadeClick(decade)}
-                className="rounded-full border border-gray-700/60 bg-gray-950 px-3 py-1 text-xs text-gray-400 hover:border-gray-500 hover:text-white transition"
-              >
-                {decade}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* By Category */}
-      <div>
         <h2 className="text-lg font-bold text-white mb-3">By Category</h2>
         <div className="space-y-3">
           {categories.map((cat) => {
