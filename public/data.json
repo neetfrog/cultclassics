@@ -388,6 +388,38 @@
         "description": "A couple has their memories of one another erased and then rediscover why they fell in love.",
         "whyCult": "A modern romantic masterpiece that is endlessly rewatched by anyone who believes love is worth the pain.",
         "rating": 5
+      },
+      {
+        "id": "m22",
+        "title": "Scott Pilgrim vs. the World",
+        "year": 2010,
+        "genre": "Action / Comedy",
+        "tags": [
+          "comic book",
+          "video game",
+          "stylized",
+          "edgar wright"
+        ],
+        "emoji": "🎸",
+        "description": "A slacker must defeat his new girlfriend's seven evil exes in a hyperkinetic video-game world.",
+        "whyCult": "The visuals, soundtrack, and rapid-fire humor turned it into a generation's cult classic; every scene feels like a level cleared.",
+        "rating": 5
+      },
+      {
+        "id": "m23",
+        "title": "They Live",
+        "year": 1988,
+        "genre": "Sci-Fi / Action",
+        "tags": [
+          "john carpenter",
+          "satire",
+          "consumerism",
+          "aliens"
+        ],
+        "emoji": "🕶️",
+        "description": "A drifter discovers sunglasses that reveal aliens disguised as humans and subliminal messages controlling society.",
+        "whyCult": "Its pop-culture revolt and 'obey' imagery made it a rebel favorite; one fight scene is legendary among fans.",
+        "rating": 5
       }
     ],
     "tv": [
@@ -710,6 +742,38 @@
         "description": "A missing woman returns with sight restored and a secret mission to save others through alternate dimensions.",
         "whyCult": "Polarizing, mysterious, and endlessly theorized, it became a streaming show that fans still dissect obsessively.",
         "rating": 5
+      },
+      {
+        "id": "t21",
+        "title": "Rick and Morty",
+        "year": 2013,
+        "genre": "Animated Sci-Fi / Comedy",
+        "tags": [
+          "adult swim",
+          "science",
+          "dark humor",
+          "multiverse"
+        ],
+        "emoji": "🧪",
+        "description": "A cynical genius scientist drags his grandson through absurd, dangerous sci-fi adventures across realities.",
+        "whyCult": "Its blend of nihilistic humor, complex sci-fi ideas, and viral memes made it a modern cultural phenomenon.",
+        "rating": 5
+      },
+      {
+        "id": "t22",
+        "title": "The Mighty Boosh",
+        "year": 2004,
+        "genre": "Surreal Comedy",
+        "tags": [
+          "british comedy",
+          "psychedelic",
+          "surreal",
+          "music"
+        ],
+        "emoji": "🦍",
+        "description": "Two zookeepers embark on bizarre adventures with singing dinosaurs, moon men, and talking gorillas.",
+        "whyCult": "A fever dream of British surrealism that spawned obsessive fans quoting every absurd line.",
+        "rating": 4
       }
     ],
     "books": [
@@ -1047,6 +1111,38 @@
         "emoji": "🐉",
         "description": "A boy discovers a magical book that pulls him into the fate of the kingdom of Fantasia as he rides a luckdragon.",
         "whyCult": "A favorite of imaginative readers, a recursive fairy tale that became a touchstone for adventurous hearts.",
+        "rating": 4
+      },
+      {
+        "id": "b22",
+        "title": "A Clockwork Orange",
+        "year": 1962,
+        "genre": "Dystopian / Satire",
+        "tags": [
+          "anthony burgess",
+          "ultraviolence",
+          "nadsat",
+          "dystopia"
+        ],
+        "emoji": "🔧",
+        "description": "A violent delinquent undergoes an experimental rehabilitation that strips him of free will.",
+        "whyCult": "Its invented slang, brutality, and moral questions made it one of the most controversial cult novels ever.",
+        "rating": 5
+      },
+      {
+        "id": "b23",
+        "title": "The Crying of Lot 49",
+        "year": 1966,
+        "genre": "Postmodern / Mystery",
+        "tags": [
+          "thomas pynchon",
+          "conspiracy",
+          "culture",
+          "satire"
+        ],
+        "emoji": "📦",
+        "description": "A woman stumbles into a secret postal conspiracy that may or may not reveal a hidden underground alternative society.",
+        "whyCult": "A compact Pynchon classic that rewards obsessive theory-crafting and late-night paranoia.",
         "rating": 4
       }
     ],
@@ -1402,6 +1498,38 @@
         "description": "A lone survivor collects shards of a shattered world while a narrator comments on every action.",
         "whyCult": "The definitive early indie classic: gorgeous art, perfect narration, and unforgettable music.",
         "rating": 5
+      },
+      {
+        "id": "g23",
+        "title": "The Binding of Isaac",
+        "year": 2011,
+        "genre": "Roguelike / Shooter",
+        "tags": [
+          "indie",
+          "roguelike",
+          "dark",
+          "controversial"
+        ],
+        "emoji": "🧸",
+        "description": "A trapped boy fights monstrous versions of his fears through randomly generated basement levels.",
+        "whyCult": "Its relentless replayability, strange boss designs, and dark humor made it the indie roguelike monster.",
+        "rating": 5
+      },
+      {
+        "id": "g24",
+        "title": "The Legend of Zelda: Majora's Mask",
+        "year": 2000,
+        "genre": "Adventure / Action",
+        "tags": [
+          "zelda",
+          "time loop",
+          "psychological",
+          "n64"
+        ],
+        "emoji": "⏳",
+        "description": "Link must save a world doomed to catastrophe in three days by using masks and manipulating time.",
+        "whyCult": "A dark, emotional twist on Zelda that turned childhood heroes into haunting, unforgettable characters.",
+        "rating": 5
       }
     ],
     "music": [
@@ -1723,6 +1851,38 @@
         "emoji": "💔",
         "description": "Weezer's second album turned heartbreak, ambition, and weirdness into a bruised cult classic.",
         "whyCult": "Hated at release, adored later — the album every angsty indie kid swears changed their life.",
+        "rating": 5
+      },
+      {
+        "id": "mu21",
+        "title": "Enter the Wu-Tang (36 Chambers)",
+        "year": 1993,
+        "genre": "Hip-Hop",
+        "tags": [
+          "wu-tang",
+          "east coast",
+          "raw",
+          "classic"
+        ],
+        "emoji": "☯️",
+        "description": "A gritty debut that introduced the World Famous Wu-Tang Clan and changed hip-hop with its raw aesthetic.",
+        "whyCult": "Its raw beats, kung-fu samples and underground mystique made it a blueprint for 90s hip-hop fandom.",
+        "rating": 5
+      },
+      {
+        "id": "mu22",
+        "title": "Mellon Collie and the Infinite Sadness",
+        "year": 1995,
+        "genre": "Alternative Rock",
+        "tags": [
+          "smashing pumpkins",
+          "90s",
+          "dreamy",
+          "epic"
+        ],
+        "emoji": "🌑",
+        "description": "A double album that moves from arena rock to fragile ballads and baroque dreamscapes.",
+        "whyCult": "Its sprawling ambition and endless hits cemented it as the definitive 90s alt-rock cult classic.",
         "rating": 5
       }
     ]

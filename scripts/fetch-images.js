@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 const imagesDir = path.join(projectRoot, "public", "images");
-const dataDir = path.join(projectRoot, "src", "data");
+const dataFile = path.join(projectRoot, "public", "data.json");
 
 const wikipediaSummaryUrl = (title) =>
   `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
@@ -278,16 +278,17 @@ async function downloadImage(id, title) {
 }
 
 async function collectItems() {
-  const files = await readdir(dataDir);
-  const dataFiles = files.filter((file) => file.endsWith(".ts"));
-  const itemRegex = /\{[^{}]*?id:\s*"([^"]+)"[^{}]*?title:\s*"([^"]+)"/gs;
+  const fileText = await readFile(dataFile, "utf8");
+  const json = JSON.parse(fileText);
   const items = [];
 
-  for (const file of dataFiles) {
-    const fileText = await readFile(path.join(dataDir, file), "utf8");
-    let match;
-    while ((match = itemRegex.exec(fileText))) {
-      items.push({ id: match[1], title: match[2] });
+  for (const categoryItems of Object.values(json.data ?? {})) {
+    if (Array.isArray(categoryItems)) {
+      for (const item of categoryItems) {
+        if (item?.id && item?.title) {
+          items.push({ id: item.id, title: item.title });
+        }
+      }
     }
   }
 

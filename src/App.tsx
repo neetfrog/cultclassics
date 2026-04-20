@@ -21,6 +21,9 @@ const accentHex: Record<Category, string> = {
   music: "#3b82f6",
 };
 
+const INITIAL_VISIBLE_COUNT = 12;
+const LOAD_MORE_STEP = 12;
+
 const getDecade = (year: number) => `${Math.floor(year / 10) * 10}s`;
 
 function resolveItemById(itemId: string, data: Record<Category, Item[]>) {
@@ -250,6 +253,8 @@ export default function App() {
   } | null>(null);
   const [detailItem, setDetailItem] = useState<{ item: Item; catId: Category } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -367,6 +372,27 @@ export default function App() {
     }
     return items;
   }, [baseItems, search, sortKey, decadeFilter]);
+
+  useEffect(() => {
+    setVisibleCount(Math.min(filtered.length, INITIAL_VISIBLE_COUNT));
+  }, [filtered.length]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !loadMoreRef.current) return;
+    const node = loadMoreRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < filtered.length) {
+          setVisibleCount((prev) => Math.min(filtered.length, prev + LOAD_MORE_STEP));
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filtered.length, visibleCount]);
+
+  const visibleItems = filtered.slice(0, visibleCount);
 
   const globalResults = useMemo(() => {
     if (!globalSearch.trim()) return [];
@@ -682,7 +708,7 @@ export default function App() {
               </div>
             ) : viewMode === "grid" ? (
               <div className="grid grid-cols-2 gap-3">
-                {filtered.map((item) => (
+                {visibleItems.map((item) => (
                   <Card
                     key={item.id}
                     item={item}
@@ -698,7 +724,7 @@ export default function App() {
               </div>
             ) : (
               <div className="space-y-2.5">
-                {filtered.map((item) => (
+                {visibleItems.map((item) => (
                   <Card
                     key={item.id}
                     item={item}
@@ -711,6 +737,11 @@ export default function App() {
                     viewMode="list"
                   />
                 ))}
+              </div>
+            )}
+            {visibleCount < filtered.length && (
+              <div ref={loadMoreRef} className="py-8 text-center text-xs text-gray-500">
+                Loading more items…
               </div>
             )}
           </>

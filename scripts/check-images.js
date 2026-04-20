@@ -1,28 +1,29 @@
-import { readFile, access, readdir } from 'node:fs/promises';
+import { readFile, access } from 'node:fs/promises';
 import path from 'node:path';
 
-const dataDir = path.join(process.cwd(), 'src', 'data');
-const files = await readdir(dataDir);
-const dataFiles = files.filter((file) => file.endsWith('.ts'));
-const itemRegex = /\{[^{}]*?id:\s*"([^\"]+)"[^{}]*?title:\s*"([^\"]+)"/gs;
+const dataFile = path.join(process.cwd(), 'public', 'data.json');
+const dataText = await readFile(dataFile, 'utf8');
+const json = JSON.parse(dataText);
 const items = [];
-let match;
-const slugifyTitle = (title) =>
-  title
+for (const categoryItems of Object.values(json.data ?? {})) {
+  if (Array.isArray(categoryItems)) {
+    for (const item of categoryItems) {
+      if (item?.id && item?.title) {
+        items.push(item);
+      }
+    }
+  }
+}
+
+function slugifyTitle(title) {
+  return title
     .toLowerCase()
     .replace(/[—–]/g, ' ')
     .replace(/\s*—.*$/, '')
-    .replace(/["'’“”]/g, '')
+    .replace(/['"’“”]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-+/g, '-');
-
-for (const file of dataFiles) {
-  const fileText = await readFile(path.join(dataDir, file), 'utf8');
-  itemRegex.lastIndex = 0;
-  while ((match = itemRegex.exec(fileText))) {
-    items.push({ id: match[1], title: match[2] });
-  }
 }
 
 function getCategoryFromId(id) {
