@@ -1,4 +1,5 @@
 import { readFile, access } from 'node:fs/promises';
+import { accessSync } from 'node:fs';
 import path from 'node:path';
 
 const dataFile = path.join(process.cwd(), 'public', 'data.json');
@@ -35,15 +36,24 @@ function getCategoryFromId(id) {
   return 'movies';
 }
 
+const imageExtensions = ['.jpg', '.png'];
 const missing = [];
 for (const item of items) {
-  const fileName = `${slugifyTitle(item.title)}-${item.id}.jpg`;
+  const slug = slugifyTitle(item.title);
   const category = getCategoryFromId(item.id);
-  const filePath = path.join(process.cwd(), 'public', 'images', category, fileName);
-  try {
-    await access(filePath);
-  } catch {
-    missing.push({ ...item, fileName });
+  const hasArtwork = imageExtensions.some((ext) => {
+    const fileName = `${slug}-${item.id}${ext}`;
+    const filePath = path.join(process.cwd(), 'public', 'images', category, fileName);
+    try {
+      accessSync(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  if (!hasArtwork) {
+    missing.push({ id: item.id, title: item.title, category, expected: `${slug}-${item.id}.jpg|.png` });
   }
 }
 
